@@ -30,7 +30,7 @@
 <title>Carga térmica</title>
 <!-- Plataforma comum (_plataforma-hvac): tokens, base, componentes e folha do memorial. O build embute tudo no HTML único. -->
 <style>
-/* ==== plataforma v0.5.1: css/base.css ==== */
+/* ==== plataforma v0.6.0: css/base.css ==== */
 /* ---- importado: fontes.css ---- */
 /* Fontes embutidas (gerado por _plataforma-hvac\codigo\ferramentas\gera_fontes.py; não editar à mão).
    Arquivos woff2 do Google Fonts, subconjunto latin, sem alteração; letras fora dele usam a fonte seguinte da lista.
@@ -521,7 +521,7 @@ button.kpi-c:hover { border-color: var(--prim); }
 
 </style>
 <style>
-/* ==== plataforma v0.5.1: css/impressao.css ==== */
+/* ==== plataforma v0.6.0: css/impressao.css ==== */
 /* Plataforma HVAC: memorial em formato de folha e regras de impressão (o PDF sai pela impressão do navegador). */
 /* v0.5.0: a folha é papel e não flutua (sem sombra, só a borda); dentro dela ficam as fontes e os pesos da v0.4.1, para o PDF
    sair igual (a tela troca para IBM Plex; o memorial muda de fonte só numa etapa própria, com o Francisco) */
@@ -668,7 +668,7 @@ button.kpi-c:hover { border-color: var(--prim); }
 <body>
 <!-- Plataforma: página (topo, trilha, área da tela, faixa), namespace e formatação -->
 <script>
-/* ==== plataforma v0.5.1: js/interface/pagina.js ==== */
+/* ==== plataforma v0.6.0: js/interface/pagina.js ==== */
 /* Plataforma HVAC. Página comum: topo (marca, modo aprendizado, tema, comandos), trilha, área da tela, faixa de resultado,
    camada sobre a tela, campo de arquivo e captura de erro de JavaScript. Desde a v0.4.0, também o botão Menu, a barra de
    passos e o balão de dica do celular: nascem ocultos (base.css) e só aparecem em tela estreita.
@@ -677,7 +677,7 @@ button.kpi-c:hover { border-color: var(--prim); }
 window.HVAC = window.HVAC || {};
 (function (H) {
   'use strict';
-  H.plataforma = { versao: '0.5.1' };   // o build do app grava aqui a versão de _plataforma-hvac\codigo\VERSAO.txt
+  H.plataforma = { versao: '0.6.0' };   // o build do app grava aqui a versão de _plataforma-hvac\codigo\VERSAO.txt
 
   /* Erro de JavaScript fica visível na página (e aparece no teste automático) */
   window.onerror = function (msg, arq, linha) {
@@ -714,12 +714,12 @@ window.HVAC = window.HVAC || {};
 
 </script>
 <script>
-/* ==== plataforma v0.5.1: js/nucleo.js ==== */
+/* ==== plataforma v0.6.0: js/nucleo.js ==== */
 /* Namespace único do app. Módulos: dados (tabelas), util, motor (cálculo, sem DOM), ui (tela). */
 window.HVAC = window.HVAC || {};
 (function (H) {
   'use strict';
-  H.versao = '0.8.0';
+  H.versao = '0.9.0';
   H.dados = H.dados || {};
   H.util = H.util || {};
   H.motor = H.motor || {};
@@ -728,7 +728,7 @@ window.HVAC = window.HVAC || {};
 
 </script>
 <script>
-/* ==== plataforma v0.5.1: js/util/formatacao.js ==== */
+/* ==== plataforma v0.6.0: js/util/formatacao.js ==== */
 /* Formatação numérica (padrão brasileiro: vírgula decimal) e utilidades de texto. */
 (function (H) {
   'use strict';
@@ -969,17 +969,12 @@ window.HVAC = window.HVAC || {};
     sombreamento: sombreamento, sombreamentoPor: por(sombreamento, 'nome')
   };
 
-  // Condições de projeto fixas neste protótipo (planilha v1.0.5, aba Projeto)
+  // Local fixo neste protótipo (Brasília). Altitude, pressão, tbs, tbu, variação diária, fontes do clima e umidades vêm de H.dados.motor e de
+  // H.motor.contexto, pelo climaDe da tela (ficha ASHRAE Fundamentals 2025, estação 867150; desde a 0.9.0)
   H.dados.clima = {
-    cidade: 'Brasília (DF)', estacao: 'Aeroporto Juscelino Kubitschek', altitude: 1060, pressao: 89.22,
-    tbs: 32.2, tbu: 17.5, dtbs: 11.2, mes: 'outubro',
-    fonteClima: 'ABNT NBR 16401-1:2024 Tabela A.4 (frequência anual 0,4 %)',
+    cidade: 'Brasília (DF)', estacao: 'estação WMO 867150 (BRASILIA, 2000-2023)',
     fonteInterna: 'valores do projeto; o padrão do app, 24 °C e 50 %, é um par adotado e editável; a ABNT NBR 16401-2:2024 6.3, PDF p. 22 e 23, pede a verificação do conforto, pelo PMV entre −0,5 e +0,5 quando a velocidade do ar é menor que 0,20 m/s',
-    tint: 24, ur: 50,
-    fonteTbu: 'ABNT NBR 16401-1:2024 Tabela A.5 (frequência anual 0,4 %): tbu máxima 22,1 °C com tbs coincidente 26,4 °C',
-    fonteUmi: 'ABNT NBR 16401-1:2024 Tabela A.6 (frequência anual 0,4 %): ponto de orvalho 21,1 °C, umidade absoluta 17,9 g/kg e tbs coincidente 23,3 °C',
-    // Umidade absoluta na pressão local (planilha v1.0.5, aba Projeto: psicrometria do ASHRAE Fundamentals 2021 cap. 1)
-    wInt: 10.58, wExtTbs: 8.16
+    tint: 24, ur: 50
   };
   H.dados.W_POR_TR = 3516.85;
 })(window.HVAC);
@@ -1018,40 +1013,48 @@ window.HVAC = window.HVAC || {};
       { "hora": "24", "f": "0.82", "fonte": "ABNT NBR 16401-1:2024 Tabela A.8" }
     ],
     climaLocal: [
-      { "chave": "cidade", "valor": "Brasília (Aeroporto Juscelino Kubitscheck)", "unidade": "-", "fonte": "ABNT NBR 16401-1:2024 Tabela A.2 (PDF p. 50)" },
-      { "chave": "latitude", "valor": "-15.86", "unidade": "° (sul negativo)", "fonte": "ASHRAE Fundamentals 2021 cap. 14 Apêndice (listagem de estações, estação BRASILIA)" },
-      { "chave": "longitude", "valor": "-47.91", "unidade": "° (oeste negativo)", "fonte": "ASHRAE Fundamentals 2021 cap. 14 Apêndice (listagem de estações, estação BRASILIA)" },
-      { "chave": "altitude", "valor": "1060", "unidade": "m", "fonte": "ABNT NBR 16401-1:2024 Anexo A Tabela A.2 e ASHRAE Fundamentals 2021 cap. 14 Apêndice (listagem de estações, estação BRASILIA)" },
-      { "chave": "fuso", "valor": "-3", "unidade": "h em relação ao UTC", "fonte": "Horário de Brasília" },
-      { "chave": "mes_mais_quente", "valor": "10", "unidade": "mês", "fonte": "ABNT NBR 16401-1:2024 Tabela A.4" },
-      { "chave": "variacao_diaria", "valor": "11.2", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.4 (Δtbs)" },
-      { "chave": "tbs_0.4", "valor": "32.2", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.4 (tbs máx. 0,4 %)" },
-      { "chave": "tbu_0.4", "valor": "17.5", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.4 (tbu coincidente 0,4 %)" },
-      { "chave": "tbs_1", "valor": "31.2", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.4 (1 %)" },
-      { "chave": "tbu_1", "valor": "17.9", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.4 (1 %)" },
-      { "chave": "tbs_2", "valor": "30.6", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.4 (2 %)" },
-      { "chave": "tbu_2", "valor": "18.2", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.4 (2 %)" },
-      { "chave": "tbu_max_0.4", "valor": "22.1", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.5 (tbu máx. 0,4 %)" },
-      { "chave": "tbs_coinc_0.4", "valor": "26.4", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.5 (tbs coincidente 0,4 %)" },
-      { "chave": "tbu_max_1", "valor": "21.6", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.5 (1 %)" },
-      { "chave": "tbs_coinc_1", "valor": "26.1", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.5 (1 %)" },
-      { "chave": "tbu_max_2", "valor": "21.2", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.5 (2 %)" },
-      { "chave": "tbs_coinc_2", "valor": "25.8", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.5 (2 %)" },
-      { "chave": "tpo_umid_0.4", "valor": "21.1", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.6 (ponto de orvalho máx. 0,4 %; PDF p. 59)" },
-      { "chave": "w_umid_0.4", "valor": "17.9", "unidade": "g/kg", "fonte": "ABNT NBR 16401-1:2024 Tabela A.6 (umidade absoluta máx. 0,4 %; PDF p. 59)" },
-      { "chave": "tbs_umid_0.4", "valor": "23.3", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.6 (tbs coincidente 0,4 %; PDF p. 59)" },
-      { "chave": "tpo_umid_1", "valor": "20.3", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.6 (1 %; PDF p. 59)" },
-      { "chave": "w_umid_1", "valor": "17.0", "unidade": "g/kg", "fonte": "ABNT NBR 16401-1:2024 Tabela A.6 (1 %; PDF p. 59)" },
-      { "chave": "tbs_umid_1", "valor": "22.8", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.6 (1 %; PDF p. 59)" },
-      { "chave": "tpo_umid_2", "valor": "20.1", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.6 (2 %; PDF p. 59)" },
-      { "chave": "w_umid_2", "valor": "16.8", "unidade": "g/kg", "fonte": "ABNT NBR 16401-1:2024 Tabela A.6 (2 %; PDF p. 59)" },
-      { "chave": "tbs_umid_2", "valor": "22.6", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.6 (2 %; PDF p. 59)" },
-      { "chave": "tbs_aquec_99.6", "valor": "10.6", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.3 (aquecimento 99,6 %)" },
-      { "chave": "tbs_aquec_99", "valor": "11.8", "unidade": "°C", "fonte": "ABNT NBR 16401-1:2024 Tabela A.3 (aquecimento 99 %)" },
-      { "chave": "tau_b", "valor": "0.434", "unidade": "-", "fonte": "ASHRAE Climatic Design Conditions 2009 (WMO 833780), arquivo DDY EnergyPlus, mês de projeto (outubro)" },
-      { "chave": "tau_d", "valor": "2.11", "unidade": "-", "fonte": "ASHRAE Climatic Design Conditions 2009 (WMO 833780), arquivo DDY EnergyPlus, mês de projeto (outubro)" },
-      { "chave": "ashrae2021_tbs_0.4", "valor": "32.8", "unidade": "°C", "fonte": "ASHRAE Fundamentals 2021 cap. 14 Apêndice (listagem de estações, estação BRASILIA, DB 0,4 %) - conferência" },
-      { "chave": "ashrae2021_tbu_coinc_0.4", "valor": "17.4", "unidade": "°C", "fonte": "ASHRAE Fundamentals 2021 cap. 14 Apêndice (listagem de estações, estação BRASILIA, MCWB 0,4 %) - conferência" }
+      { "chave": "cidade", "valor": "Brasília (estação WMO 867150)", "unidade": "-", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "periodo", "valor": "2000-2023", "unidade": "anos", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "latitude", "valor": "-15.7894", "unidade": "° (sul negativo)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "longitude", "valor": "-47.9258", "unidade": "° (oeste negativo)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "altitude", "valor": "1160.0", "unidade": "m", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "pressao_padrao", "valor": "88.15", "unidade": "kPa", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "fuso", "valor": "-3", "unidade": "h em relação ao UTC", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "mes_mais_frio", "valor": "7", "unidade": "mês", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbs_aquec_99.6", "valor": "12.3", "unidade": "°C", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbs_aquec_99", "valor": "13.3", "unidade": "°C", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "mes_mais_quente", "valor": "9", "unidade": "mês", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "variacao_diaria", "valor": "11.1", "unidade": "°C (DB range do mês mais quente)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbs_0.4", "valor": "31.5", "unidade": "°C", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbu_0.4", "valor": "16.4", "unidade": "°C (MCWB)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbs_1", "valor": "30.4", "unidade": "°C", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbu_1", "valor": "16.7", "unidade": "°C (MCWB)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbs_2", "valor": "29.4", "unidade": "°C", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbu_2", "valor": "17.0", "unidade": "°C (MCWB)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbu_max_0.4", "valor": "20.9", "unidade": "°C", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbs_coinc_0.4", "valor": "25.5", "unidade": "°C (MCDB)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbu_max_1", "valor": "20.6", "unidade": "°C", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbs_coinc_1", "valor": "25.1", "unidade": "°C (MCDB)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbu_max_2", "valor": "20.3", "unidade": "°C", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbs_coinc_2", "valor": "24.7", "unidade": "°C (MCDB)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "vento_coinc_0.4", "valor": "2.8", "unidade": "m/s", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "dir_vento_0.4", "valor": "90.0", "unidade": "°", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tpo_umid_0.4", "valor": "19.7", "unidade": "°C", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "w_umid_0.4", "valor": "16.7", "unidade": "g/kg", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbs_umid_0.4", "valor": "21.7", "unidade": "°C (MCDB)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tpo_umid_1", "valor": "19.4", "unidade": "°C", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "w_umid_1", "valor": "16.3", "unidade": "g/kg", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbs_umid_1", "valor": "21.6", "unidade": "°C (MCDB)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tpo_umid_2", "valor": "19.1", "unidade": "°C", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "w_umid_2", "valor": "16.0", "unidade": "g/kg", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbs_umid_2", "valor": "21.5", "unidade": "°C (MCDB)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "h_0.4", "valor": "66.3", "unidade": "kJ/kg", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbs_h_0.4", "valor": "25.7", "unidade": "°C (MCDB)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "h_1", "valor": "65.1", "unidade": "kJ/kg", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbs_h_1", "valor": "25.3", "unidade": "°C (MCDB)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "h_2", "valor": "64.1", "unidade": "kJ/kg", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbs_h_2", "valor": "24.9", "unidade": "°C (MCDB)", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "chave": "tbu_extremo_max", "valor": "22.4", "unidade": "°C", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" }
     ],
     ctsParedes: [
       { "id": "V", "numero": "0", "descricao": "Sem inércia (vidro, porta, divisória) - resposta instantânea", "U_ref": "0", "R_ref": "0", "c0": "100", "c1": "0", "c2": "0", "c3": "0", "c4": "0", "c5": "0", "c6": "0", "c7": "0", "c8": "0", "c9": "0", "c10": "0", "c11": "0", "c12": "0", "c13": "0", "c14": "0", "c15": "0", "c16": "0", "c17": "0", "c18": "0", "c19": "0", "c20": "0", "c21": "0", "c22": "0", "c23": "0", "fonte": "Identidade (c0 = 100 %)" },
@@ -1733,18 +1736,18 @@ window.HVAC = window.HVAC || {};
       { "vidro": "5f", "dispositivo": "Rolô cinza-escuro translúcido", "IAC0": "0.84", "IAC60": "0.84", "IACdif": "0.84", "FR": "0.5", "fonte": "ASHRAE Fundamentals 2021 cap. 15 Tabela 14G, PDF p. 403" }
     ],
     climaMensal: [
-      { "mes": "1", "db_2": "30.2", "mcwb_2": "19.5", "db_5": "29.2", "mcwb_5": "19.4", "db_10": "28.0", "mcwb_10": "19.8", "wb_2": "21.9", "mcdb_2": "26.0", "wb_5": "21.4", "mcdb_5": "25.4", "wb_10": "20.8", "mcdb_10": "24.8", "mdbr": "9.2", "tau_b": "0.372", "tau_d": "2.494", "fonte": "ASHRAE Climatic Design Conditions 2021, estação 833780 (BRASILIA), 1994 a 2019, pelo serviço ashrae-meteo.info (acesso em 2026-10-05) - CONFERIR com a folha oficial da estação" },
-      { "mes": "2", "db_2": "30.2", "mcwb_2": "19.7", "db_5": "29.2", "mcwb_5": "19.6", "db_10": "28.1", "mcwb_10": "19.9", "wb_2": "21.7", "mcdb_2": "26.1", "wb_5": "21.2", "mcdb_5": "25.7", "wb_10": "20.7", "mcdb_10": "25.1", "mdbr": "9.7", "tau_b": "0.373", "tau_d": "2.478", "fonte": "ASHRAE Climatic Design Conditions 2021, estação 833780 (BRASILIA), 1994 a 2019, pelo serviço ashrae-meteo.info (acesso em 2026-10-05) - CONFERIR com a folha oficial da estação" },
-      { "mes": "3", "db_2": "29.9", "mcwb_2": "19.9", "db_5": "28.8", "mcwb_5": "20.0", "db_10": "27.7", "mcwb_10": "20.1", "wb_2": "21.7", "mcdb_2": "26.3", "wb_5": "21.2", "mcdb_5": "25.9", "wb_10": "20.7", "mcdb_10": "25.2", "mdbr": "9.4", "tau_b": "0.364", "tau_d": "2.532", "fonte": "ASHRAE Climatic Design Conditions 2021, estação 833780 (BRASILIA), 1994 a 2019, pelo serviço ashrae-meteo.info (acesso em 2026-10-05) - CONFERIR com a folha oficial da estação" },
-      { "mes": "4", "db_2": "29.3", "mcwb_2": "19.4", "db_5": "28.7", "mcwb_5": "19.4", "db_10": "27.7", "mcwb_10": "19.6", "wb_2": "21.6", "mcdb_2": "26.1", "wb_5": "21.0", "mcdb_5": "25.8", "wb_10": "20.5", "mcdb_10": "25.1", "mdbr": "10.3", "tau_b": "0.354", "tau_d": "2.517", "fonte": "ASHRAE Climatic Design Conditions 2021, estação 833780 (BRASILIA), 1994 a 2019, pelo serviço ashrae-meteo.info (acesso em 2026-10-05) - CONFERIR com a folha oficial da estação" },
-      { "mes": "5", "db_2": "28.9", "mcwb_2": "18.3", "db_5": "27.9", "mcwb_5": "18.5", "db_10": "26.9", "mcwb_10": "18.1", "wb_2": "20.7", "mcdb_2": "25.4", "wb_5": "19.9", "mcdb_5": "24.9", "wb_10": "19.2", "mcdb_10": "24.4", "mdbr": "11.9", "tau_b": "0.334", "tau_d": "2.549", "fonte": "ASHRAE Climatic Design Conditions 2021, estação 833780 (BRASILIA), 1994 a 2019, pelo serviço ashrae-meteo.info (acesso em 2026-10-05) - CONFERIR com a folha oficial da estação" },
-      { "mes": "6", "db_2": "27.9", "mcwb_2": "17.0", "db_5": "26.9", "mcwb_5": "16.6", "db_10": "26.0", "mcwb_10": "16.4", "wb_2": "18.7", "mcdb_2": "24.9", "wb_5": "17.9", "mcdb_5": "24.4", "wb_10": "17.3", "mcdb_10": "23.8", "mdbr": "13.4", "tau_b": "0.310", "tau_d": "2.622", "fonte": "ASHRAE Climatic Design Conditions 2021, estação 833780 (BRASILIA), 1994 a 2019, pelo serviço ashrae-meteo.info (acesso em 2026-10-05) - CONFERIR com a folha oficial da estação" },
-      { "mes": "7", "db_2": "28.1", "mcwb_2": "15.8", "db_5": "27.2", "mcwb_5": "15.7", "db_10": "26.2", "mcwb_10": "15.5", "wb_2": "17.6", "mcdb_2": "24.9", "wb_5": "16.9", "mcdb_5": "24.8", "wb_10": "16.3", "mcdb_10": "24.2", "mdbr": "14.2", "tau_b": "0.311", "tau_d": "2.585", "fonte": "ASHRAE Climatic Design Conditions 2021, estação 833780 (BRASILIA), 1994 a 2019, pelo serviço ashrae-meteo.info (acesso em 2026-10-05) - CONFERIR com a folha oficial da estação" },
-      { "mes": "8", "db_2": "30.2", "mcwb_2": "15.8", "db_5": "29.2", "mcwb_5": "15.6", "db_10": "28.1", "mcwb_10": "15.4", "wb_2": "17.7", "mcdb_2": "25.8", "wb_5": "17.0", "mcdb_5": "25.4", "wb_10": "16.4", "mcdb_10": "25.3", "mdbr": "14.8", "tau_b": "0.348", "tau_d": "2.440", "fonte": "ASHRAE Climatic Design Conditions 2021, estação 833780 (BRASILIA), 1994 a 2019, pelo serviço ashrae-meteo.info (acesso em 2026-10-05) - CONFERIR com a folha oficial da estação" },
-      { "mes": "9", "db_2": "32.2", "mcwb_2": "16.6", "db_5": "31.2", "mcwb_5": "16.7", "db_10": "30.1", "mcwb_10": "16.7", "wb_2": "19.8", "mcdb_2": "25.9", "wb_5": "19.1", "mcdb_5": "25.2", "wb_10": "18.5", "mcdb_10": "25.2", "mdbr": "13.6", "tau_b": "0.460", "tau_d": "2.132", "fonte": "ASHRAE Climatic Design Conditions 2021, estação 833780 (BRASILIA), 1994 a 2019, pelo serviço ashrae-meteo.info (acesso em 2026-10-05) - CONFERIR com a folha oficial da estação" },
-      { "mes": "10", "db_2": "32.9", "mcwb_2": "17.4", "db_5": "31.8", "mcwb_5": "17.6", "db_10": "30.2", "mcwb_10": "18.0", "wb_2": "21.0", "mcdb_2": "26.5", "wb_5": "20.4", "mcdb_5": "25.7", "wb_10": "19.8", "mcdb_10": "25.1", "mdbr": "11.5", "tau_b": "0.442", "tau_d": "2.235", "fonte": "ASHRAE Climatic Design Conditions 2021, estação 833780 (BRASILIA), 1994 a 2019, pelo serviço ashrae-meteo.info (acesso em 2026-10-05) - CONFERIR com a folha oficial da estação" },
-      { "mes": "11", "db_2": "30.8", "mcwb_2": "19.0", "db_5": "29.1", "mcwb_5": "19.4", "db_10": "27.9", "mcwb_10": "19.8", "wb_2": "21.4", "mcdb_2": "26.0", "wb_5": "20.9", "mcdb_5": "25.4", "wb_10": "20.5", "mcdb_10": "24.7", "mdbr": "9.1", "tau_b": "0.400", "tau_d": "2.390", "fonte": "ASHRAE Climatic Design Conditions 2021, estação 833780 (BRASILIA), 1994 a 2019, pelo serviço ashrae-meteo.info (acesso em 2026-10-05) - CONFERIR com a folha oficial da estação" },
-      { "mes": "12", "db_2": "30.1", "mcwb_2": "19.7", "db_5": "29.0", "mcwb_5": "19.8", "db_10": "27.8", "mcwb_10": "20.0", "wb_2": "21.7", "mcdb_2": "26.1", "wb_5": "21.2", "mcdb_5": "25.5", "wb_10": "20.7", "mcdb_10": "24.8", "mdbr": "8.8", "tau_b": "0.382", "tau_d": "2.452", "fonte": "ASHRAE Climatic Design Conditions 2021, estação 833780 (BRASILIA), 1994 a 2019, pelo serviço ashrae-meteo.info (acesso em 2026-10-05) - CONFERIR com a folha oficial da estação" }
+      { "mes": "1", "db_2": "28.8", "mcwb_2": "18.5", "db_5": "27.8", "mcwb_5": "18.7", "db_10": "26.6", "mcwb_10": "19.0", "wb_2": "20.6", "mcdb_2": "24.7", "wb_5": "20.2", "mcdb_5": "24.3", "wb_10": "19.9", "mcdb_10": "23.8", "mdbr": "8.3", "tau_b": "0.362", "tau_d": "2.5", "db_04": "30.0", "mcwb_04": "18.3", "wb_04": "21.2", "mcdb_04": "25.2", "ebn_meio_dia": "977.0", "edh_meio_dia": "115.0", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "mes": "2", "db_2": "28.6", "mcwb_2": "18.8", "db_5": "27.6", "mcwb_5": "19.0", "db_10": "26.6", "mcwb_10": "19.2", "wb_2": "20.6", "mcdb_2": "25.2", "wb_5": "20.2", "mcdb_5": "24.7", "wb_10": "19.8", "mcdb_10": "24.2", "mdbr": "8.6", "tau_b": "0.36", "tau_d": "2.518", "db_04": "29.7", "mcwb_04": "18.4", "wb_04": "21.1", "mcdb_04": "25.9", "ebn_meio_dia": "970.0", "edh_meio_dia": "112.0", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "mes": "3", "db_2": "28.2", "mcwb_2": "19.0", "db_5": "27.2", "mcwb_5": "19.2", "db_10": "26.2", "mcwb_10": "19.3", "wb_2": "20.6", "mcdb_2": "25.1", "wb_5": "20.2", "mcdb_5": "24.5", "wb_10": "19.9", "mcdb_10": "24.0", "mdbr": "8.4", "tau_b": "0.355", "tau_d": "2.546", "db_04": "29.3", "mcwb_04": "18.9", "wb_04": "21.2", "mcdb_04": "25.8", "ebn_meio_dia": "954.0", "edh_meio_dia": "106.0", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "mes": "4", "db_2": "27.8", "mcwb_2": "18.7", "db_5": "27.0", "mcwb_5": "18.8", "db_10": "26.0", "mcwb_10": "18.8", "wb_2": "20.4", "mcdb_2": "24.6", "wb_5": "20.1", "mcdb_5": "24.1", "wb_10": "19.7", "mcdb_10": "23.5", "mdbr": "8.7", "tau_b": "0.341", "tau_d": "2.573", "db_04": "28.8", "mcwb_04": "18.5", "wb_04": "20.9", "mcdb_04": "25.2", "ebn_meio_dia": "933.0", "edh_meio_dia": "97.0", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "mes": "5", "db_2": "27.2", "mcwb_2": "17.5", "db_5": "26.2", "mcwb_5": "17.4", "db_10": "25.3", "mcwb_10": "17.3", "wb_2": "19.2", "mcdb_2": "23.9", "wb_5": "18.7", "mcdb_5": "23.5", "wb_10": "18.2", "mcdb_10": "23.0", "mdbr": "10.1", "tau_b": "0.314", "tau_d": "2.606", "db_04": "28.3", "mcwb_04": "17.5", "wb_04": "19.9", "mcdb_04": "24.4", "ebn_meio_dia": "927.0", "edh_meio_dia": "87.0", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "mes": "6", "db_2": "26.2", "mcwb_2": "16.2", "db_5": "25.5", "mcwb_5": "15.9", "db_10": "24.7", "mcwb_10": "15.8", "wb_2": "17.8", "mcdb_2": "23.5", "wb_5": "17.3", "mcdb_5": "23.0", "wb_10": "16.7", "mcdb_10": "22.4", "mdbr": "10.7", "tau_b": "0.297", "tau_d": "2.644", "db_04": "27.4", "mcwb_04": "16.1", "wb_04": "18.5", "mcdb_04": "24.0", "ebn_meio_dia": "929.0", "edh_meio_dia": "81.0", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "mes": "7", "db_2": "27.1", "mcwb_2": "15.2", "db_5": "26.0", "mcwb_5": "14.8", "db_10": "25.0", "mcwb_10": "14.8", "wb_2": "16.7", "mcdb_2": "24.0", "wb_5": "16.1", "mcdb_5": "23.4", "wb_10": "15.5", "mcdb_10": "22.8", "mdbr": "11.3", "tau_b": "0.288", "tau_d": "2.653", "db_04": "28.2", "mcwb_04": "15.4", "wb_04": "17.4", "mcdb_04": "24.5", "ebn_meio_dia": "947.0", "edh_meio_dia": "82.0", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "mes": "8", "db_2": "29.1", "mcwb_2": "15.2", "db_5": "28.0", "mcwb_5": "15.1", "db_10": "26.9", "mcwb_10": "14.9", "wb_2": "17.4", "mcdb_2": "23.9", "wb_5": "16.5", "mcdb_5": "23.9", "wb_10": "15.8", "mcdb_10": "24.1", "mdbr": "11.5", "tau_b": "0.303", "tau_d": "2.577", "db_04": "30.2", "mcwb_04": "15.3", "wb_04": "18.6", "mcdb_04": "24.3", "ebn_meio_dia": "959.0", "edh_meio_dia": "95.0", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "mes": "9", "db_2": "31.4", "mcwb_2": "15.7", "db_5": "30.3", "mcwb_5": "15.7", "db_10": "29.1", "mcwb_10": "15.7", "wb_2": "19.0", "mcdb_2": "24.9", "wb_5": "18.4", "mcdb_5": "24.2", "wb_10": "17.8", "mcdb_10": "23.7", "mdbr": "11.1", "tau_b": "0.359", "tau_d": "2.395", "db_04": "32.7", "mcwb_04": "15.7", "wb_04": "19.8", "mcdb_04": "25.8", "ebn_meio_dia": "935.0", "edh_meio_dia": "121.0", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "mes": "10", "db_2": "31.7", "mcwb_2": "16.6", "db_5": "30.4", "mcwb_5": "16.8", "db_10": "29.1", "mcwb_10": "17.1", "wb_2": "20.1", "mcdb_2": "25.4", "wb_5": "19.6", "mcdb_5": "24.7", "wb_10": "19.2", "mcdb_10": "24.0", "mdbr": "10.0", "tau_b": "0.402", "tau_d": "2.337", "db_04": "33.2", "mcwb_04": "16.1", "wb_04": "20.7", "mcdb_04": "26.2", "ebn_meio_dia": "919.0", "edh_meio_dia": "133.0", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "mes": "11", "db_2": "29.2", "mcwb_2": "18.6", "db_5": "27.8", "mcwb_5": "18.9", "db_10": "26.5", "mcwb_10": "19.0", "wb_2": "20.5", "mcdb_2": "25.2", "wb_5": "20.1", "mcdb_5": "24.5", "wb_10": "19.7", "mcdb_10": "23.9", "mdbr": "8.4", "tau_b": "0.382", "tau_d": "2.42", "db_04": "31.5", "mcwb_04": "17.8", "wb_04": "21.1", "mcdb_04": "26.1", "ebn_meio_dia": "951.0", "edh_meio_dia": "124.0", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" },
+      { "mes": "12", "db_2": "28.9", "mcwb_2": "18.6", "db_5": "27.7", "mcwb_5": "19.0", "db_10": "26.4", "mcwb_10": "19.2", "wb_2": "20.6", "mcdb_2": "25.0", "wb_5": "20.2", "mcdb_5": "24.5", "wb_10": "19.8", "mcdb_10": "23.9", "mdbr": "8.2", "tau_b": "0.371", "tau_d": "2.472", "db_04": "30.5", "mcwb_04": "17.9", "wb_04": "21.2", "mcdb_04": "25.7", "ebn_meio_dia": "967.0", "edh_meio_dia": "118.0", "fonte": "ASHRAE Handbook Fundamentals 2025 (SI), ficha da estação 867150 (BRASILIA, 2000-2023), 01_ANEXOS\\handbooks\\DadosPsicometricos_Brasilia.pdf p. 1 - CONFERIR com a folha oficial (o PDF é impressão de página web de terceiro)" }
     ]
   };
 })(window.HVAC);
@@ -1913,7 +1916,7 @@ window.HVAC = window.HVAC || {};
       formato: 'hvac-carga-termica', versaoFormato: 3, versaoApp: H.versao,
       projeto: { nome: 'Edifício comercial, exemplo', cliente: '', responsavel: '', registro: '', revisao: 'R0',
                  fs: 10, hIni: 8, hFim: 18, controleUmidade: false, freq: '0.4',
-                 sistema: 'Zona única (Qs = Qz)', dSistema: null, tInt: null, urInt: null },
+                 sistema: 'Zona única (Qs = Qz)', dSistema: null, tInt: null, urInt: null, dTIns: null, qVent: null },
       ambientes: [ambienteExemplo()]
     };
   }
@@ -1945,46 +1948,180 @@ window.HVAC = window.HVAC || {};
 
 </script>
 <script>
-/* ==== js/motor/psicro.js ==== */
-/* Psicrometria na pressão local (ASHRAE Fundamentals 2021 cap. 1): pressão, pws, w, densidade e ar padrão (1,2 kg/m³). Sem DOM.
-   Usada pelo clima horário (clima.js), pelo ar exterior (ar_exterior.js) e pelos valores mostrados no memorial. */
+/* ==== plataforma v0.6.0: js/motor/psicrometria.js ==== */
+/* Psicrometria do ar úmido como mistura de gases perfeitos (ASHRAE Handbook Fundamentals 2021 SI, cap. 1, p. 1.1 a 1.11). Motor comum
+   dos apps HVAC, sem DOM; carregar depois do nucleo.js. Unidades: t em °C, p em kPa, W em kg/kg de ar seco, h em kJ/kg de ar seco,
+   v em m³/kg de ar seco, ρ em kg/m³, UR e μ como fração (0 a 1).
+   - Entrada fora da faixa de uma equação gera RangeError; nada é reaproveitado de uma chamada anterior.
+   - Saturação sobre gelo abaixo de 0 °C (Eq. 5) e sobre água de 0 a 200 °C (Eq. 6); abaixo de 0 °C a UR é relativa ao gelo.
+   - UR sem fator de realce (f = 1): Eq. (22), que elimina o fator com a hipótese de gás perfeito.
+   - Erro do gás perfeito abaixo de 0,7 % em W, h e v do ar saturado a 101,325 kPa de −50 a 50 °C, menor com pressão menor (p. 1.1).
+   - As expressões de pressao, pws (0 a 200 °C), wDePw, wDeTbu (t* ≥ 0) e densidade repetem, na mesma ordem de operações, as do
+     psicro.js da carga térmica (planilha v1.0.5): resultado bit a bit igual. */
 (function (H) {
   'use strict';
-  var RHO_PADRAO = 1.2;          // kg/m³, ar padrão
-  var ALTITUDE = 1060;           // m, Brasília (planilha v1.0.5, aba Projeto)
-  var T_INT = 24, UR_INT = 0.5;
+  var MW = 0.621945;                   // razão das massas molares água/ar seco, Eq. (20)
+  var T_MIN = -100, T_MAX = 200;       // °C, faixa das Eq. (5) e (6)
+  var Z_MIN = -5000, Z_MAX = 11000;    // m, faixa das Eq. (3) e (4)
+  var TOL_T = 1e-10;                   // K, fim das bissecções de tpo e tbu
+  var FOLGA_T = 1e-8;                  // K, tpo ou tbu acima de tbs só até aqui (resto das bissecções); acima disso, erro
 
-  // Pressão atmosférica local, kPa: cap. 1 eq. (3)
-  function pressao(z) { return 101.325 * Math.pow(1 - 2.25577e-5 * z, 5.2559); }
+  function erro(msg) { throw new RangeError('Psicrometria: ' + msg); }
+  function num(x, nome) { if (typeof x !== 'number' || !isFinite(x)) erro(nome + ' inválido (' + x + ')'); return x; }
 
-  // Pressão de saturação sobre água líquida, kPa: cap. 1 eq. (6), Hyland-Wexler (0 a 200 °C)
+  // Pressão atmosférica pela altitude, kPa: Eq. (3), p. 1.1
+  function pressao(z) {
+    num(z, 'altitude');
+    if (z < Z_MIN || z > Z_MAX) erro('altitude ' + z + ' m fora de −5.000 a 11.000 m (Eq. 3)');
+    return 101.325 * Math.pow(1 - 2.25577e-5 * z, 5.2559);
+  }
+
+  // Altitude pela pressão, m: Eq. (3) resolvida em Z
+  function altitude(p) {
+    num(p, 'pressão');
+    if (!(p > 0)) erro('pressão ' + p + ' kPa não positiva');
+    var z = (1 - Math.pow(p / 101.325, 1 / 5.2559)) / 2.25577e-5;
+    if (z < Z_MIN - 1e-6 || z > Z_MAX + 1e-6) erro('pressão ' + p + ' kPa fora da faixa da Eq. (3) (−5.000 a 11.000 m)');
+    return z;
+  }
+
+  // Pressão de saturação do vapor, kPa: sobre gelo de −100 a 0 °C, Eq. (5); sobre água líquida de 0 a 200 °C, Eq. (6); p. 1.5 (pws em Pa ÷ 1000)
   function pws(t) {
+    num(t, 'temperatura');
+    if (t < T_MIN || t > T_MAX) erro('temperatura ' + t + ' °C fora de −100 a 200 °C (Eq. 5 e 6)');
     var T = t + 273.15;
+    if (t < 0) return Math.exp(-5.6745359e3 / T + 6.3925247 - 9.677843e-3 * T + 6.2215701e-7 * T * T + 2.0747825e-9 * T * T * T - 9.484024e-13 * T * T * T * T + 4.1635019 * Math.log(T)) / 1000;
     return Math.exp(-5.8002206e3 / T + 1.3914993 - 4.8640239e-2 * T + 4.1764768e-5 * T * T - 1.4452093e-8 * T * T * T + 6.5459673 * Math.log(T)) / 1000;
   }
 
-  // Umidade absoluta, kg/kg, a partir da pressão parcial de vapor: cap. 1 eq. (20)
-  function wDePw(pw, p) { return 0.621945 * pw / (p - pw); }
+  // Umidade a partir da pressão parcial do vapor: Eq. (20), p. 1.9; inversa: Eq. (36), p. 1.10
+  function wDePw(pw, p) { return MW * pw / (p - pw); }
+  function pwDeW(w, p) { return p * w / (MW + w); }
 
-  // Umidade absoluta a partir de tbs e tbu: cap. 1 eq. (33); os termos 2501 e 1,86 vêm de ASHRAE Fundamentals 2021 cap. 1 Eq. (30), p. 1.10 (h = 1,006·t + W·(2501 + 1,86·t))
-  function wDeTbsTbu(tbs, tbu, p) {
-    var ws = wDePw(pws(tbu), p);
-    return ((2501 - 2.326 * tbu) * ws - 1.006 * (tbs - tbu)) / (2501 + 1.86 * tbs - 4.186 * tbu);
+  // Umidade do ar saturado: Eq. (21), p. 1.9
+  function ws(t, p) {
+    var s = pws(t);
+    if (!(s < p)) erro('pws(' + t + ' °C) = ' + s + ' kPa não é menor que p = ' + p + ' kPa: não há ar saturado');
+    return wDePw(s, p);
   }
 
-  // Densidade em base de ar seco, kg/m³ (inverso do volume específico): cap. 1 eq. (26)
-  function densidade(t, w, p) { return p / (0.287042 * (t + 273.15) * (1 + 1.607858 * w)); }
+  // Entalpia, kJ/kg de ar seco: Eq. (30), p. 1.10; e a temperatura que dá a entalpia h com a umidade w
+  function entalpia(t, w) { return 1.006 * t + w * (2501 + 1.86 * t); }
+  function tDeEntalpia(h, w) { return (h - 2501 * w) / (1.006 + 1.86 * w); }
 
-  H.motor.psicro = { RHO_PADRAO: RHO_PADRAO, pressao: pressao, pws: pws, wDePw: wDePw, wDeTbsTbu: wDeTbsTbu,
-                     densidade: densidade,
-                     wInterna: function () { return wDePw(UR_INT * pws(T_INT), pressao(ALTITUDE)); } };
+  // Entalpia da água condensada, kJ/kg: líquida, Eq. (32); gelo abaixo de 0 °C, Eq. (34); p. 1.10
+  function hAgua(t) { return t < 0 ? -333.4 + 2.1 * t : 4.186 * t; }
+
+  // Volume específico, m³/kg de ar seco: Eq. (26), p. 1.10; densidade em base de ar seco (1/v) e do ar úmido, (1 + W)/v, Eq. (11), p. 1.9
+  function volume(t, w, p) { return 0.287042 * (t + 273.15) * (1 + 1.607858 * w) / p; }
+  function densidade(t, w, p) { return p / (0.287042 * (t + 273.15) * (1 + 1.607858 * w)); }
+  function densidadeUmida(t, w, p) { return (1 + w) / volume(t, w, p); }
+
+  // Umidade pela temperatura de bulbo úmido termodinâmica t*: Eq. (33) com t* ≥ 0 (água) e Eq. (35) com t* < 0 (gelo), p. 1.10
+  function wDeTbu(t, tbu, p) {
+    var s = ws(tbu, p);
+    if (tbu >= 0) return ((2501 - 2.326 * tbu) * s - 1.006 * (t - tbu)) / (2501 + 1.86 * t - 4.186 * tbu);
+    return ((2830 - 0.24 * tbu) * s - 1.006 * (t - tbu)) / (2830 + 1.86 * t - 2.1 * tbu);
+  }
+
+  // Bissecção de f crescente em [a, b] com f(a) ≤ 0 ≤ f(b); devolve o extremo de menor |f| (raiz exata num extremo sai exata)
+  function bissecao(f, a, b) {
+    var fa = f(a), fb = f(b);
+    while (b - a > TOL_T) { var m = (a + b) / 2, fm = f(m); if (fm > 0) { b = m; fb = fm; } else { a = m; fa = fm; } }
+    return Math.abs(fa) <= Math.abs(fb) ? a : b;
+  }
+
+  // Temperatura de orvalho (de geada abaixo de 0 °C), °C: raiz de pws(td) = pw, Eq. (36), p. 1.10, com pws das Eq. (5) e (6)
+  function tpo(pw) {
+    num(pw, 'pressão parcial do vapor');
+    if (!(pw > 0)) erro('ar seco (pw = ' + pw + ' kPa) não tem temperatura de orvalho');
+    if (pw < pws(T_MIN) || pw > pws(T_MAX)) erro('pw = ' + pw + ' kPa fora da faixa de −100 a 200 °C');
+    return bissecao(function (x) { return pws(x) - pw; }, T_MIN, T_MAX);
+  }
+
+  // Correlação direta de Peppers, °C: Eq. (37) de 0 a 93 °C e Eq. (38) abaixo de 0 °C, p. 1.10 e 1.11 (pw em kPa); só para comparação
+  function tpoPeppers(pw) {
+    var a = Math.log(pw), td = 6.54 + 14.526 * a + 0.7389 * a * a + 0.09486 * a * a * a + 0.4569 * Math.pow(pw, 0.1984);
+    return td < 0 ? 6.09 + 12.608 * a + 0.4959 * a * a : td;
+  }
+
+  // Temperatura de bulbo úmido termodinâmica, °C: t* tal que wDeTbu(t, t*, p) = w (Eq. 33 ou 35), por bissecção.
+  // Em t* = 0 a troca da Eq. (33) pela (35) faz W cair (W pela Eq. 35 em 0⁻ é maior que pela Eq. 33 em 0⁺): com tbs > 0 e W entre
+  // os dois valores há duas raízes, uma com água e outra com gelo (o Handbook avisa que o bulbo é impreciso em 0 °C, p. 1.10).
+  // Regra fixa: W ≥ W(Eq. 33, t* = 0) → raiz em [0, tbs] (água); senão → raiz abaixo de 0 °C (gelo). Assim tbu cresce com W.
+  function tbu(t, w, p) {
+    num(t, 'tbs'); num(w, 'W'); num(p, 'pressão');
+    if (!(w >= 0)) erro('W = ' + w + ' negativa');
+    if (w > ws(t, p)) erro('W = ' + w + ' maior que a de saturação a ' + t + ' °C: ar supersaturado');
+    var f = function (x) { return wDeTbu(t, x, p) - w; };
+    if (t <= 0) return bissecao(f, T_MIN, t);
+    return f(0) <= 0 ? bissecao(f, 0, t) : bissecao(f, T_MIN, 0);
+  }
+
+  // Estado completo do ar: { p | z, tbs } e exatamente uma entre ur, tbu, tpo e w (métodos das situações 1 a 3, p. 1.11).
+  // A grandeza informada volta exatamente como entrou; as outras são calculadas.
+  function estado(e) {
+    if ((e.p == null) === (e.z == null)) erro('informe a pressão p ou a altitude z (uma das duas)');
+    var p = e.p != null ? num(e.p, 'pressão') : pressao(e.z);
+    if (!(p > 0)) erro('pressão ' + p + ' kPa não positiva');
+    var t = num(e.tbs, 'tbs'), sT = pws(t), wsT = ws(t, p);
+    var dadas = ['ur', 'tbu', 'tpo', 'w'].filter(function (k) { return e[k] != null; });
+    if (dadas.length !== 1) erro('informe exatamente uma entre ur, tbu, tpo e w (veio: ' + (dadas.join(', ') || 'nenhuma') + ')');
+    var dada = dadas[0], x = num(e[dada], dada), w;
+    if (dada === 'ur') { if (!(x > 0 && x <= 1)) erro('UR = ' + x + ' fora de (0; 1]'); w = wDePw(x * sT, p); }
+    else if (dada === 'tbu') { if (x > t + FOLGA_T) erro('tbu ' + x + ' °C maior que tbs ' + t + ' °C'); w = wDeTbu(t, Math.min(x, t), p); if (!(w > 0)) erro('tbu ' + x + ' °C baixa demais para tbs ' + t + ' °C: umidade ≤ 0'); }
+    else if (dada === 'tpo') { if (x > t + FOLGA_T) erro('tpo ' + x + ' °C maior que tbs ' + t + ' °C'); w = wDePw(pws(Math.min(x, t)), p); }
+    else { if (!(x > 0)) erro('W = ' + x + ' não positiva'); w = x; }
+    if (w > wsT * (1 + 1e-12)) erro('umidade acima da de saturação a ' + t + ' °C: ar supersaturado');
+    var pw = pwDeW(w, p), v = volume(t, w, p);
+    return {
+      p: p, z: e.z != null ? e.z : null, tbs: t, w: w, pw: pw, pws: sT, ws: wsT,
+      ur: dada === 'ur' ? x : pw / sT,                         // Eq. (22)
+      mu: w / wsT,                                             // grau de saturação, Eq. (23)
+      tpo: dada === 'tpo' ? x : tpo(pw),
+      tbu: dada === 'tbu' ? x : tbu(t, w, p),
+      h: entalpia(t, w), v: v, rho: (1 + w) / v, rhoSeco: 1 / v
+    };
+  }
+
+  H.motor.psicrometria = {
+    FONTE: 'ASHRAE Handbook Fundamentals 2021 (SI), cap. 1', MW: MW, T_MIN: T_MIN, T_MAX: T_MAX,
+    pressao: pressao, altitude: altitude, pws: pws, wDePw: wDePw, pwDeW: pwDeW, ws: ws, entalpia: entalpia, tDeEntalpia: tDeEntalpia,
+    hAgua: hAgua, volume: volume, densidade: densidade, densidadeUmida: densidadeUmida, wDeTbu: wDeTbu, tpo: tpo, tpoPeppers: tpoPeppers,
+    tbu: tbu, estado: estado
+  };
+})(window.HVAC);
+
+</script>
+<script>
+/* ==== js/motor/psicro.js ==== */
+/* Psicrometria na pressão local: nomes do motor da carga térmica sobre o motor comum da plataforma (H.motor.psicrometria, v0.6.0;
+   ASHRAE Fundamentals 2021 cap. 1), que repete as expressões na mesma ordem de operações: resultado bit a bit igual ao das versões
+   até a 0.8.0. Carregar depois de psicrometria.js e de tabelas_motor.js. Sem DOM.
+   Usada pelo clima horário (clima.js), pelo ar exterior (ar_exterior.js) e pelos valores mostrados no memorial. */
+(function (H) {
+  'use strict';
+  var P = H.motor.psicrometria;
+  var RHO_PADRAO = 1.2;          // kg/m³, ar padrão
+  var T_INT = 24, UR_INT = 0.5;
+
+  H.motor.psicro = {
+    RHO_PADRAO: RHO_PADRAO,
+    pressao: P.pressao,          // Eq. (3)
+    pws: P.pws,                  // Eq. (6) de 0 a 200 °C (Eq. 5 abaixo de 0 °C); fora de −100 a 200 °C, erro
+    wDePw: P.wDePw,              // Eq. (20)
+    wDeTbsTbu: P.wDeTbu,         // Eq. (33) com tbu ≥ 0 °C
+    densidade: P.densidade,      // Eq. (26), base de ar seco
+    // w interno do padrão (24 °C, 50 %) na altitude do clima em uso (dados\*_clima_brasilia.csv)
+    wInterna: function () { return P.wDePw(UR_INT * P.pws(T_INT), P.pressao(H.dados.motor.clima.altitude)); }
+  };
 })(window.HVAC);
 
 </script>
 <script>
 /* ==== js/motor/solar.js ==== */
 /* Posição solar e irradiância de céu claro (ASHRAE Fundamentals 2021 cap. 14: Eq. (16), massa de ar, p. 14.10; Eq. (26) a (31), direta, difusa e refletida em superfície inclinada, p. 14.11 e 14.12; Tabela 2), hora a hora de um dia de projeto.
-   Reproduz conta por conta as abas Projeto e Solar da planilha carga-termica-cltd v1.0.5 (um bloco por mês: dia 21, τb e τd do mês). Sem DOM.
+   Reproduz conta por conta as abas Projeto e Solar da planilha carga-termica-cltd v1.1.0 (um bloco por mês: dia 21, τb e τd do mês). Sem DOM.
    Ângulos em graus nas entradas e saídas. Entrada p = { lat, lon, tz, nDia, tauB, tauD, rhoG }. */
 (function (H) {
   'use strict';
@@ -1995,6 +2132,9 @@ window.HVAC = window.HVAC || {};
   ];
   // Dia 21 de cada mês: cap. 14 Tabela 2
   var DIA_DO_ANO = [21, 52, 80, 111, 141, 172, 202, 233, 264, 294, 325, 355];
+  // Constante solar, W/m² (planilha v1.1.0, E_sc; Francisco, 2026-11-04): 1.361, a que casa com os τ da ficha ASHRAE 2025
+  // (Ebn ao meio-dia de março 953,9 contra 954 da ficha). CONFERIR no cap. 14 de 2025, que não está na biblioteca; até a 0.8.0, 1.367 (2021)
+  var E_SC = 1361;
 
   function rad(x) { return x * Math.PI / 180; }
   function grau(x) { return x * 180 / Math.PI; }
@@ -2002,14 +2142,15 @@ window.HVAC = window.HVAC || {};
   function diaDoAno(mes) { return DIA_DO_ANO[mes - 1]; }
 
   /* Grandezas que dependem só do dia e da atmosfera.
-     lsm = 15·tz: eq. (8); Eo = 1367·(1 + 0,033·cos(360·(n − 3)/365)): eq. (4);
+     lsm = 15·tz: eq. (8); Eo = E_sc·(1 + 0,033·cos(360·(n − 3)/365)): eq. (4);
      etMin: eq. (5) com g = 360·(n − 1)/365 (equação do tempo em min); decl = 23,45·sen(360·(n + 284)/365): eq. (10);
-     ab, ad: eqs. (19) e (20). Numeração das equações como citada na planilha. */
+     ab, ad: eqs. (19) e (20). Numeração das equações como citada na planilha.
+     p.eSc (opcional, W/m²): constante solar de outra fonte, só para validação (i1: 1.367 do exemplo do cap. 18 de 2021); ausente = E_SC */
   function derivados(p) {
     var n = p.nDia, tb = p.tauB, td = p.tauD, g = rad(360 * (n - 1) / 365);
     return {
       lsm: 15 * p.tz,
-      Eo: 1367 * (1 + 0.033 * Math.cos(rad(360 * (n - 3) / 365))),
+      Eo: (p.eSc != null ? p.eSc : E_SC) * (1 + 0.033 * Math.cos(rad(360 * (n - 3) / 365))),
       etMin: 2.2918 * (0.0075 + 0.1868 * Math.cos(g) - 3.2077 * Math.sin(g) - 1.4615 * Math.cos(2 * g) - 4.089 * Math.sin(2 * g)),
       decl: 23.45 * Math.sin(rad(360 * (n + 284) / 365)),
       ab: 1.454 - 0.406 * tb - 0.268 * td + 0.021 * tb * td,
@@ -2070,7 +2211,7 @@ window.HVAC = window.HVAC || {};
     return r;
   }
 
-  H.motor.solar = { ORIENTACOES: ORIENTACOES, DIA_DO_ANO: DIA_DO_ANO, diaDoAno: diaDoAno, derivados: derivados, posicao: posicao, irradiancia: irradiancia };
+  H.motor.solar = { ORIENTACOES: ORIENTACOES, DIA_DO_ANO: DIA_DO_ANO, E_SC: E_SC, diaDoAno: diaDoAno, derivados: derivados, posicao: posicao, irradiancia: irradiancia };
 })(window.HVAC);
 
 </script>
@@ -2104,17 +2245,15 @@ window.HVAC = window.HVAC || {};
 </script>
 <script>
 /* ==== js/motor/clima.js ==== */
-/* Clima horário do dia de projeto (NBR 16401-1:2024 A.3 e Tabela A.8; psicrometria do ASHRAE Fundamentals 2021 cap. 1) e condições
-   de projeto por mês (opção E). Reproduz as abas Clima_h, Tab_ClimaMes e Projeto (seção 6) da planilha carga-termica-cltd v1.0.5. Sem DOM. */
+/* Clima horário do dia de projeto (NBR 16401-1:2024 A.3 e Tabela A.8; psicrometria do ASHRAE Fundamentals 2021 cap. 1, pelo motor
+   comum da plataforma) e condições de projeto por mês (opção E), com os valores da ficha ASHRAE Fundamentals 2025 da estação 867150.
+   Reproduz as abas Clima_h, Tab_ClimaMes e Projeto (seção 6) da planilha carga-termica-cltd v1.1.0. Sem DOM. */
 (function (H) {
   'use strict';
-  var ps = H.motor.psicro;
+  var ps = H.motor.psicro, P = H.motor.psicrometria;
 
-  // Temperatura de ponto de orvalho (°C) a partir de pw (kPa): cap. 1 eq. (37), Peppers
-  function tpoDePw(pw) {
-    var a = Math.log(pw);
-    return 6.54 + 14.526 * a + 0.7389 * a * a + 0.09486 * a * a * a + 0.4569 * Math.pow(pw, 0.1984);
-  }
+  // Temperatura de ponto de orvalho (°C) a partir de pw (kPa): cap. 1 eq. (37), Peppers (motor comum; eq. (38) abaixo de 0 °C)
+  var tpoDePw = P.tpoPeppers;
 
   // tbu (°C) que dá a umidade w na tbs e pressão p: bisseção de 40 voltas sobre a eq. (33), entre tpo e tbs
   function tbuDeW(tbs, w, tpo, p) {
@@ -2126,14 +2265,15 @@ window.HVAC = window.HVAC || {};
     return (a0 + a1) / 2;
   }
 
-  /* Condições de projeto por mês, opção E (planilha v1.0.5, aba Tab_ClimaMes colunas S a AA; decisão do Francisco, 2026-10-06):
-     o valor anual da NBR 16401-1:2024 (Tabelas A.4 e A.5) fica no mês do máximo de cada variável; os outros meses descem pela
-     diferença mensal da ASHRAE Climatic Design Conditions 2021 (CONFERIR). freq: '0.4', '1' ou '2' → percentil mensal 2, 5 ou 10 %
+  /* Condições de projeto por mês, opção E (planilha v1.1.0, aba Tab_ClimaMes; decisão do Francisco, 2026-10-06; fonte trocada em 2026-11-04):
+     o valor anual da ficha ASHRAE Fundamentals 2025 da estação 867150 fica no mês do máximo de cada variável; os outros meses descem
+     pela diferença mensal da mesma ficha (CONFERIR). freq: '0.4', '1' ou '2' → percentil mensal 2, 5 ou 10 %
      (colunas _2, _5, _10 de H.dados.motor.climaMensal); k = H.dados.motor.clima; tab = H.dados.motor.climaMensal (12 linhas).
-     mDB = primeiro mês do máximo de DB; mWB = primeiro mês do máximo de WB. Para cada mês:
+     mDB = primeiro mês do máximo de DB; mWB = primeiro mês do máximo de WB (R1, Francisco, 2026-11-04: no empate vale o primeiro
+     mês do ano; WB 2 % = 20,6 °C em jan., fev., mar. e dez. → janeiro). Para cada mês:
        tbsTbs = tbs_freq − (máx DB − DB);  tbuTbs = mín(tbsTbs; tbu_freq + MCWB − MCWB[mDB]);
        tbsTbu = tbs_coinc_freq + MCDB − MCDB[mWB];  tbuTbu = mín(tbsTbu; tbu_max_freq − (máx WB − WB));
-       dT = variacao_diaria + MDBR − MDBR[mDB].
+       dT = MDBR do próprio mês (C2, Francisco, 2026-11-04; até a 0.8.0 era variacao_diaria + MDBR − MDBR[mDB]).
      Retorno { mDB, mWB, meses: [12 × { mes, tbsTbs, tbuTbs, tbsTbu, tbuTbu, dT, tauB, tauD }] } (mesmas contas, na mesma ordem, da planilha) */
   var SUFIXO = { '0.4': '2', '1': '5', '2': '10' };
   function mensal(freq, k, tab) {
@@ -2146,20 +2286,22 @@ window.HVAC = window.HVAC || {};
     var db = tab.map(function (l) { return l['db_' + s]; }), mcwb = tab.map(function (l) { return l['mcwb_' + s]; });
     var wb = tab.map(function (l) { return l['wb_' + s]; }), mcdb = tab.map(function (l) { return l['mcdb_' + s]; });
     var maxDB = Math.max.apply(null, db), maxWB = Math.max.apply(null, wb), mDB = db.indexOf(maxDB), mWB = wb.indexOf(maxWB);
-    var tbsA = v('tbs_' + freq), tbuA = v('tbu_' + freq), tbsC = v('tbs_coinc_' + freq), tbuM = v('tbu_max_' + freq), dTbs = v('variacao_diaria');
+    var tbsA = v('tbs_' + freq), tbuA = v('tbu_' + freq), tbsC = v('tbs_coinc_' + freq), tbuM = v('tbu_max_' + freq);
     var meses = tab.map(function (l, i) {
       var tbsTbs = tbsA - (maxDB - db[i]);
       var tbsTbu = tbsC + mcdb[i] - mcdb[mWB];
       return { mes: l.mes, tbsTbs: tbsTbs, tbuTbs: Math.min(tbsTbs, tbuA + mcwb[i] - mcwb[mDB]),
-        tbsTbu: tbsTbu, tbuTbu: Math.min(tbsTbu, tbuM - (maxWB - wb[i])), dT: dTbs + l.mdbr - tab[mDB].mdbr, tauB: l.tau_b, tauD: l.tau_d };
+        tbsTbu: tbsTbu, tbuTbu: Math.min(tbsTbu, tbuM - (maxWB - wb[i])), dT: l.mdbr, tauB: l.tau_b, tauD: l.tau_d };
     });
     return { mDB: tab[mDB].mes, mWB: tab[mWB].mes, meses: meses };
   }
 
-  /* Condições do dia de projeto. freq: '0.4', '1' ou '2'; dia: 'tbs' (Tabela A.4), 'tbu' (A.5) ou 'umi' (A.6); k = H.dados.motor.clima.
+  /* Condições do dia de projeto (método da NBR 16401-1:2024 5.1.1.2; valores da ficha ASHRAE 2025). freq: '0.4', '1' ou '2';
+     dia: 'tbs' (DB e MCWB), 'tbu' (WB e MCDB) ou 'umi' (DP, HR e MCDB); k = H.dados.motor.clima.
      mm (opcional) = uma linha de meses de mensal(): dias tbs e tbu passam a ser os do mês (opção E: tbs, tbu e Δtbs do mês); sem mm, os
-     valores anuais da norma. O dia 'umi' é o anual da Tabela A.6 em todos os meses, com Δtbs = variacao_diaria.
-     Retorno { tbs, tbu, dTbs }. No dia 'umi' a tbu sai da umidade absoluta da Tabela A.6 (NBR 16401-1:2024 5.1.1.2) */
+     valores anuais da ficha, com Δtbs = variacao_diaria. O dia 'umi' é o anual da ficha em todos os meses, com o Δtbs do mês (D1,
+     Francisco, 2026-11-04; até a 0.8.0, variacao_diaria). Retorno { tbs, tbu, dTbs }. No dia 'umi' a tbu sai da umidade absoluta
+     da ficha (16,7 g/kg a 0,4 %), como na planilha v1.1.0 */
   function condicoes(freq, dia, k, p, mm) {
     function v(chave) {
       if (!(chave in k)) throw new Error('clima sem a chave ' + chave);
@@ -2172,7 +2314,7 @@ window.HVAC = window.HVAC || {};
       var t = v('tbs_umid_' + freq);
       r = { tbs: t, tbu: tbuDeW(t, v('w_umid_' + freq) / 1000, v('tpo_umid_' + freq), p) };
     } else throw new Error('dia de projeto desconhecido: ' + dia);
-    if (!(mm && dia !== 'umi')) r.dTbs = v('variacao_diaria');
+    r.dTbs = mm ? mm.dT : v('variacao_diaria');
     return r;
   }
 
@@ -2181,15 +2323,15 @@ window.HVAC = window.HVAC || {};
      ho: eq. (30); vo: eq. (26); pwExt: eq. (20) invertida. Retorno { p, wExt, pwExt, tpoExt, to, wo, ho, vo } */
   function horario(e) {
     var p = ps.pressao(e.alt), wExt = ps.wDeTbsTbu(e.tbs, e.tbu, p);
-    var pwExt = p * wExt / (0.621945 + wExt), tpoExt = tpoDePw(pwExt);
+    var pwExt = P.pwDeW(wExt, p), tpoExt = tpoDePw(pwExt);
     var to = [], wo = [], ho = [], vo = [];
     for (var h = 0; h < 24; h++) {
       var t = e.tbs - e.f[h] * e.dTbs, w;
       if (tpoExt < t) w = wExt;
-      else { var s = ps.pws(t); w = 0.621945 * s / (p - s); }
+      else w = P.ws(t, p);
       to.push(t); wo.push(w);
-      ho.push(1.006 * t + w * (2501 + 1.86 * t));
-      vo.push(0.287042 * (t + 273.15) * (1 + 1.607858 * w) / p);
+      ho.push(P.entalpia(t, w));
+      vo.push(P.volume(t, w, p));
     }
     return { p: p, wExt: wExt, pwExt: pwExt, tpoExt: tpoExt, to: to, wo: wo, ho: ho, vo: vo };
   }
@@ -3016,7 +3158,7 @@ window.HVAC = window.HVAC || {};
 
   /* Contexto do projeto e do mês (cache por frequência e mês): irradiância solar do mês (dia 21 da ASHRAE 2021 cap. 14 Tabela 2, τb e τd do
      mês), pressão e, por dia de projeto, clima horário e temperaturas sol-ar. Condições de projeto por mês pela opção E (clima.js; planilha v1.0.5,
-     aba Tab_ClimaMes). mes: 1 a 12; ausente ou inválido = mês mais quente da NBR (Tabela A.4). T e w internos não são mais do contexto:
+     aba Tab_ClimaMes). mes: 1 a 12; ausente ou inválido = mês mais quente da ficha ASHRAE 2025. T e w internos não são mais do contexto:
      são do ambiente (adotados) */
   var cacheContexto = {}, cacheMensal = {};
   function freqDe(projeto) {
@@ -3353,8 +3495,8 @@ window.HVAC = window.HVAC || {};
 (function (H) {
   'use strict';
   var f = H.util.fmt, tab = H.dados.tab, dm = H.dados.motor;
-  var PLANILHA = 'planilha Carga_Termica_Brasilia v1.0.5';
-  // Desvio declarado da interpolação do IAC (texto da planilha v1.0.5, aba Metodologia)
+  var PLANILHA = 'planilha Carga_Termica_Brasilia v1.1.0';
+  // Desvio declarado da interpolação do IAC (texto da planilha v1.1.0, aba Metodologia)
   var DESVIO_IAC = 'IAC(θ, Ω) = IAC0 + (IAC60 − IAC0)·mín(Ω; 60°)/60°. A Eq. (40) impressa no cap. 15 (p. 15.35) traz mín(1,2·Ω; 60°); adota-se a forma Ω/60, que é a usada no Exemplo 8 do cap. 15 (p. 15.36 (PDF 388)) e reproduz o exemplo numérico do cap. 18. A substituição numérica do próprio Exemplo 8 usa 40/60 e obtém 0,91, o que corresponde à forma Ω/60 adotada: desvio declarado do texto impresso (CONFERIR errata)';
   var FONTE_RETORNO = 'ASHRAE Fundamentals 2021 cap. 18 Tabela 3 (fração do calor da luminária que fica no espaço); NBR 16401-1:2024 6.2.2.2';
   var FONTE_EV = 'Ev = 0,75 para D ≥ 0,60; Ev = 0,88·D + 0,22 para D < 0,60 (ABNT NBR 16401-3:2024, 5.5.9, Eq. (7) e (8)). D vazio vale Ev = 0,75: regra do app, não da norma';
@@ -3375,7 +3517,7 @@ window.HVAC = window.HVAC || {};
       ' L/s (1,5 × ΣQz ÷ Ev). Nota: a capacidade do sistema usa ' + f.num(X, 1) + ' L/s (Qt = ΣQz, interpretação declarada deste app). Na ABNT NBR 16401-3:2024, a Eq. (9) da 5.5.10 ' +
       'dá a vazão mínima de ar primário de cada zona, a Eq. (10) da 5.5.11 não define Qt e a Tabela D.3 traz o rótulo Qs = Qz / Ev com números de 1,5 × Qz ÷ Ev.';
   }
-  var FONTE_5_1_1_2 = 'ABNT NBR 16401-1:2024 5.1.1.2 a) e b): dimensiona-se com tbs e tbu coincidente (Tabela A.4) e verifica-se a carga total nas condições de tbu máxima e tbs coincidente (Tabela A.5). A umidade máxima (Tabela A.6) entra só em sistema com controle de umidade (alínea d). Adotar a maior capacidade entre os meses e os dias é critério deste projeto (' + PLANILHA + ', abas Varredura e Resumo)';
+  var FONTE_5_1_1_2 = 'ABNT NBR 16401-1:2024 5.1.1.2 a) e b): dimensiona-se com tbs e tbu coincidente e verifica-se a carga total nas condições de tbu máxima e tbs coincidente. A umidade máxima entra só em sistema com controle de umidade (alínea d). Valores das condições: ficha ASHRAE Fundamentals 2025 (estação 867150). Adotar a maior capacidade entre os meses e os dias é critério deste projeto (' + PLANILHA + ', abas Varredura e Resumo)';
   var SERIE_NS = 'série RTS não solar da zona (ASHRAE Fundamentals 2021 cap. 18 Tabela 19)';
   var SERIE_SOL = 'série RTS solar da zona (ASHRAE Fundamentals 2021 cap. 18 Tabela 20)';
   /* Por que o pico pode subir com sombreamento interno (v0.5.1; decisão do Francisco, 2026-10-08: método do cap. 18 e aviso sombSobePico mantidos).
@@ -3393,7 +3535,7 @@ window.HVAC = window.HVAC || {};
     'Premissas: beiral bem mais largo que a janela e brise mais alto que ela (sombra de borda reta em todo o vidro; beiral da largura exata da janela protege menos do que o calculado); ' +
     'janelas iguais na face; lâminas opacas, perpendiculares à fachada, rentes ao vidro e com uma lâmina na borda do vidro (lâmina afastada do vidro ou sem lâmina na borda deixa passar mais Sol do que o calculado); ' +
     'a sombra não reduz o calor da parede. A ABNT NBR 16401-1:2024 manda considerar a sombra projetada por anteparos (6.2.1.1 c) e não traz o método. ' +
-    'Esta parte existe só no app: a planilha de conferência (Carga_Termica_Brasilia v1.0.5) não calcula sombreamento externo';
+    'Esta parte existe só no app: a planilha de conferência (Carga_Termica_Brasilia v1.1.0) não calcula sombreamento externo';
   var SOMB_EXT_INCOMPLETO = 'Sombreamento externo escolhido sem a projeção ou sem a medida do vidro: calculado sem a sombra externa';
 
   function fonteIac(it) {
@@ -3456,7 +3598,73 @@ window.HVAC = window.HVAC || {};
     return out;
   }
 
+  /* Passos da serpentina (etapa 4; textos P-1 a P-18 aprovados pelo Francisco em 2026-11-04). Números de M.serpentina.paraProjeto (doConjunto); aqui
+     só a substituição na fórmula. cj = M.conjunto. Serpentina não calculada (estados diferentes ou erro de entrada): lista vazia; o aviso explica */
+  var EQ30 = 'ASHRAE Fundamentals 2021 cap. 1 Eq. (30), p. 1.10';
+  function passosSerpentina(cj, projeto) {
+    var sp = H.motor.serpentina.paraProjeto(cj, projeto), out = [];
+    if (!sp.calculado) return out;
+    var r = sp.r, cg = sp.cargas, pt = sp.ponte, rs = H.motor.resumo(cj, projeto), mes = H.motor.MESES[sp.mes - 1];
+    function T(t, c) { return f.num(t, c === undefined ? 1 : c) + ' °C'; }
+    function dT(t) { return numMin(t, 1, 4) + ' °C'; }
+    function G(w) { return f.num(w * 1000, 2) + ' g/kg'; }
+    function KJ(h) { return f.num(h, 2) + ' kJ/kg'; }
+    function KG(m) { return f.num(m, 4) + ' kg/s'; }
+    function KW(q) { return f.num(q / 1000, 3) + ' kW'; }
+    var L = 2501 + 1.86 * r.amb.t, cpA = 1.006 + 1.86 * r.amb.w, dw = r.ent.w - r.ins.w;
+    var wReq = r.amb.w - cg.qLatW / 1000 / (r.mIns * L);
+    out.push(p('Combinação da serpentina', 'a mesma da capacidade do sistema', mes + ', dia de ' + rs.nomeDia + ', ' + sp.hora + ' h', 'capacidade do sistema ' + W(pt.capSistemaW),
+               'quadro de decisões D11 (sessão da etapa 3)', { id: 'serpComb', num: pt.capSistemaW }));
+    out.push(p('Estado do ambiente', 'h = 1,006·t + W·(2501 + 1,86·t)', 't = ' + T(r.amb.t) + '; W = ' + G(r.amb.w), 'h = ' + KJ(r.amb.h), EQ30, { id: 'serpAmb', num: r.amb.h }));
+    out.push(p('Ar exterior na hora', 't e W do clima da hora; h pela mesma equação', 't = ' + T(r.ext.t) + '; W = ' + G(r.ext.w), 'h = ' + KJ(r.ext.h),
+               'clima da varredura (ficha ASHRAE 2025)', { id: 'serpExt', num: r.ext.h }));
+    out.push(p('Vazão de ar exterior', 'm_o = Qs × 1,2 kg/m³', f.num(cg.qsLs, 1) + ' L/s × 1,2 kg/m³', KG(cg.mExtMin),
+               'Qs da ABNT NBR 16401-3:2024 5.5.11, Eq. (10); ar padrão (16401-3 Tabela 1, Nota 1)', { id: 'serpMo', num: cg.mExtMin }));
+    out.push(p('Calor do ambiente retirado pelo insuflamento', 'q_s = Σ sensível sem ar exterior; q_l = Σ (pessoas + infiltração)',
+               'q_s = ' + W(cg.qSensW, 1) + '; q_l = ' + W(cg.qLatW, 1) + '; calor ao retorno q_ret = ' + W(cg.qRetW, 1), 'q_s = ' + W(cg.qSensW) + '; q_l = ' + W(cg.qLatW),
+               'soma dos ambientes na hora', { id: 'serpQ', num: cg.qSensW }));
+    out.push(p('Vazão de insuflamento', 'm_s = (q_s ÷ ΔT + 1,86·q_l ÷ L) ÷ (1,006 + 1,86·W_a), L = 2501 + 1,86·t_a',
+               r.arExtGoverna ? 'ar exterior maior que a vazão pelo ΔT: m_s = m_o = ' + KG(r.mIns) + '; ΔT = ' + dT(r.dT)
+                 : '(' + KW(cg.qSensW) + ' ÷ ' + dT(r.dT) + ' + 1,86 × ' + KW(cg.qLatW) + ' ÷ ' + f.num(L, 2) + ') ÷ ' + f.num(cpA, 5),
+               KG(r.mIns) + ' = ' + f.num(r.lsPadrao, 0) + ' L/s de ar padrão (' + f.num(r.m3hLocal, 0) + ' m³/h no local)',
+               'ASHRAE Fundamentals 2021 cap. 1 Eq. (30); ΔT: premissa do app (CONFERIR)', { id: 'serpMs', num: r.mIns }));
+    out.push(p('Umidade do insuflamento', 'W_s = W_a − q_l ÷ (m_s·L)', G(r.amb.w) + ' − ' + KW(cg.qLatW) + ' ÷ (' + KG(r.mIns) + ' × ' + f.num(L, 2) + ')',
+               r.seca ? 'W exigido ' + G(wReq) + '; serpentina seca: W_s = W_e = ' + G(r.ins.w) : 'W_s = ' + G(r.ins.w), EQ30, { id: 'serpWs', num: r.ins.w }));
+    out.push(p('Limite de saturação', 'maior ΔT com W_s ≤ W de saturação em t_s',
+               r.dTMax === null ? 'a reta de carga do ambiente não alcança a saturação' : 'ΔT máx. = ' + dT(r.dTMax) + '; pedido ' + dT(r.dTPedido),
+               'ΔT adotado = ' + dT(r.dT) + (r.arExtGoverna ? ' (vazão do ar exterior)' : r.saturada ? ' (saída saturada)' : ''),
+               'bissecção; Eq. (30) e pressão de saturação do cap. 1', { id: 'serpDt', num: r.dT }));
+    out.push(p('Retorno', 'h_r = h_a + q_ret ÷ m_r',
+               r.mRet > 0 ? KJ(r.amb.h) + ' + ' + KW(cg.qRetW) + ' ÷ ' + KG(r.mRet) : cg.qRetW > 0 ? 'sem retorno: o calor ao retorno sai na exaustão' : 'sem retorno',
+               't = ' + T(r.ret.t) + '; h = ' + KJ(r.ret.h), 'calor da iluminação ao retorno', { id: 'serpRet', num: r.ret.h }));
+    out.push(p('Mistura', 'W_m = (m_o·W_o + m_r·W_r) ÷ m_s; h_m = (m_o·h_o + m_r·h_r) ÷ m_s',
+               '(' + KG(r.mExt) + ' × ' + G(r.ext.w) + ' + ' + KG(r.mRet) + ' × ' + G(r.ret.w) + ') ÷ ' + KG(r.mIns) + '; h com ' + KJ(r.ext.h) + ' e ' + KJ(r.ret.h),
+               't = ' + T(r.mis.t) + '; W = ' + G(r.mis.w) + '; h = ' + KJ(r.mis.h), 'ASHRAE Fundamentals 2021 cap. 1 Eq. (44), p. 1.14', { id: 'serpMis', num: r.mis.h }));
+    out.push(p('Entrada da serpentina', 'h_e = h_m + q_vent ÷ m_s', KJ(r.mis.h) + ' + ' + KW(pt.qVentW) + ' ÷ ' + KG(r.mIns),
+               't = ' + T(r.ent.t) + '; h = ' + KJ(r.ent.h), 'ABNT NBR 16401-1:2024 6.3.2', { id: 'serpEnt', num: r.ent.h }));
+    out.push(p('Condensado', 'm_w = m_s·(W_e − W_s)', KG(r.mIns) + ' × (' + G(r.ent.w) + ' − ' + G(r.ins.w) + ')',
+               f.num(r.mCond, 6) + ' kg/s = ' + f.num(r.condKgH, 2) + ' kg/h', 'ASHRAE Fundamentals 2021 cap. 1 Eq. (42), p. 1.12', { id: 'serpCond', num: r.condKgH }));
+    out.push(p('Carga total da serpentina', 'q_t = m_s·[(h_e − h_s) − (W_e − W_s)·h_w], h_w à tbs de saída',
+               KG(r.mIns) + ' × [(' + KJ(r.ent.h) + ' − ' + KJ(r.ins.h) + ') − ' + f.num(dw * r.hCond, 3) + ' kJ/kg], com (W_e − W_s)·h_w = ' + G(dw) + ' × ' + KJ(r.hCond) + ' a ' + T(r.tCond),
+               W(r.qTotal), 'ASHRAE Fundamentals 2021 cap. 1 Eq. (43), p. 1.12', { id: 'serpQt', num: r.qTotal }));
+    out.push(p('Calor latente da serpentina', 'q_lat = m_w·(h_g − h_w) no orvalho do ar que entra',
+               r.mCond > 0 ? f.num(r.mCond, 6) + ' kg/s × ' + f.num(r.qLat / 1000 / r.mCond, 1) + ' kJ/kg (h_g − h_w a ' + T(r.t4) + ')' : 'sem condensado',
+               W(r.qLat), 'ASHRAE HVAC Systems and Equipment 2016 cap. 23 Eq. (38), p. 23.15', { id: 'serpLat', num: r.qLat }));
+    out.push(p('Calor sensível da serpentina', 'q_sens = q_t − q_lat', W(r.qTotal, 1) + ' − ' + W(r.qLat, 1), W(r.qSens), 'S&E 2016 cap. 23 Eq. (39a) e (40)', { id: 'serpSens', num: r.qSens }));
+    out.push(p('Fator de calor sensível da serpentina', 'FCS = q_sens ÷ q_t', W(r.qSens, 1) + ' ÷ ' + W(r.qTotal, 1), f.num(r.fcs, 3), '', { id: 'serpFcs', num: r.fcs }));
+    out.push(p('ADP e fator de by-pass', 'ADP na reta entrada-saída prolongada até a saturação; BF = (t_s − ADP) ÷ (t_e − ADP)',
+               r.adp !== null ? '(' + T(r.ins.t, 2) + ' − ' + T(r.adp, 2) + ') ÷ (' + T(r.ent.t, 2) + ' − ' + T(r.adp, 2) + ')' : r.mCond > 0 ? 'a reta não cruza a saturação' : 'não se aplica (serpentina seca)',
+               r.adp !== null ? 'ADP = ' + T(r.adp) + '; BF = ' + f.num(r.bf, 3) : '—', 'ASHRAE Load Calculation Applications Manual, cap. 9', { id: 'serpAdp', num: r.adp }));
+    out.push(p('Conferência com a capacidade do sistema', 'm_s·(h_e − h_s) = capacidade do sistema + m_o·1,86·t_a·(W_o − W_a) + q_vent',
+               pt.valida ? W(pt.qArW, 1) + ' = ' + W(pt.capSistemaW, 1) + ' + ' + W(pt.extraW, 1) + ' + ' + W(pt.qVentW, 1)
+                 : 'não se aplica nesta condição (serpentina seca, 100 % de ar exterior, sem retorno ou latente negativo em algum ambiente)',
+               pt.valida ? 'diferença ' + f.num(Math.abs(pt.difW) <= 1e-6 ? 0 : pt.difW, 6) + ' W' + (pt.confere ? ' (confere)' : ' (não confere)') : '—',
+               'identidade do quadro D15 (erro ≤ 1e-6 W)', { id: 'serpPonte', num: pt.difW }));
+    return out;
+  }
+
   function passos(chave, amb, res, projeto) {
+    if (chave === 'serpentina') return passosSerpentina(res, projeto);
     var a = res.adotados, hp = res.horaPico, ip = hp - 1, lista = [], pf, fonteRts;
     var naHora = 'Carga às ' + hp + ' h';
     var perfNome = a ? 'Perfil de ocupação "' + a.perfil + '" (' + (dm.perfisPor[a.perfil] ? dm.perfisPor[a.perfil].fonte : '') + ')' : '';
@@ -3534,7 +3742,7 @@ window.HVAC = window.HVAC || {};
                    sens2 ? f.num(a.infLs, 1) + ' L/s ÷ 1000 × ' + f.num(rho2, 1) + ' × (' + f.num(k2.CP_AR, 3) + ' + ' + f.num(k2.CP_V, 2) + ' × ' + f.num(wo2, 5) + ') × (' + f.num(to2, 2) + ' − ' + f.num(res.tInt, 1) + ') °C × 1000'
                          : f.num(a.infLs, 1) + ' L/s ÷ 1000 × ' + f.num(rho2, 1) + ' × ' + f.num(k2.H_FG, 0) + ' × (' + f.num(wo2, 5) + ' − ' + f.num(res.wInt, 5) + ') kg/kg × 1000',
                    W(res.pico[chave]),
-                   PLANILHA + ' (cabeçalho de ar_exterior.js). Infiltração em ar padrão, ρ = 1,2 kg/m³: mesma forma e mesma convenção do ar exterior (a norma não trata da infiltração; decisão do projeto, 2026-10-06; ASHRAE Fundamentals 2021 cap. 1 Eq. (30), p. 1.10). Premissa a favor da segurança: cerca de 14 % a mais de massa de ar que na altitude local. t_ext = ' +
+                   PLANILHA + ' (cabeçalho de ar_exterior.js). Infiltração em ar padrão, ρ = 1,2 kg/m³: mesma forma e mesma convenção do ar exterior (a norma não trata da infiltração; decisão do projeto, 2026-10-06; ASHRAE Fundamentals 2021 cap. 1 Eq. (30), p. 1.10). Premissa a favor da segurança: cerca de 15 % a mais de massa de ar que na altitude local, a 20 °C. t_ext = ' +
                    f.num(to2, 2) + ' °C, w_ext = ' + f.num(wo2 * 1000, 3) + ' g/kg; condições internas do ambiente: ' + f.num(res.tInt, 1) + ' °C e ' + f.num(a.urInt, 0) + ' % (w_int = ' + f.num(res.wInt * 1000, 3) + ' g/kg)' +
                    (!sens2 && res.pico[chave] < 0 ? '. Negativo: ar externo mais seco que o ambiente; não reduz a carga sensível (ver carga total).' : ''), { id: 'infiltracao', calc: calcInf }));
     } else if (chave === 'opaca' || chave === 'vidroCond' || chave === 'vidroSolar' || chave === 'envoltoria') {
@@ -3612,7 +3820,7 @@ window.HVAC = window.HVAC || {};
                      nomeComb + ', dia de ' + ra.nomeDia + ', ' + ra.hora + ' h', W(ra.capW), FONTE_5_1_1_2, { id: 'adotada', num: ra.capW }));
         lista.push(p('Maior carga do ambiente no ano', 'máx da carga do ambiente entre as combinações que contam',
                      H.motor.MESES[ra.mesCarga - 1] + ', dia de ' + (H.motor.DIAS.indexOf(ra.diaCarga) >= 0 ? res.meses[ra.mesCarga][ra.diaCarga].nomeDia : ra.diaCarga) + ', ' + ra.horaCarga + ' h', W(ra.cargaW),
-                     'Informativo: a capacidade é dimensionada pela combinação adotada; esta é a maior carga do próprio ambiente (planilha v1.0.5, Resumo, bloco F)', { id: 'maiorCarga', num: ra.cargaW }));
+                     'Informativo: a capacidade é dimensionada pela combinação adotada; esta é a maior carga do próprio ambiente (planilha v1.1.0, Resumo, bloco F)', { id: 'maiorCarga', num: ra.cargaW }));
         lista.push(p('Carga do ambiente às ' + ra.hora + ' h', 'sensível + latente líquido (passos da carga total)', '', W(cargaH), 'Combinação adotada', { id: 'cargaAmb', num: cargaH }));
         lista.push(p('+ Calor da iluminação ao retorno', 'q_ret(h) = P × (1 − fração no espaço) × perfil(h)', '', W(retH), FONTE_RETORNO, { id: 'retorno', num: retH }));
         lista.push(p('= Capacidade do ambiente', 'carga do ambiente + calor ao retorno', W(cargaH, 1) + ' + ' + W(retH, 1), W(ra.capW),
@@ -3626,7 +3834,7 @@ window.HVAC = window.HVAC || {};
         var rs = H.motor.resumo(res, projeto), pt = rs.ponte, nomesDias = H.motor.diasConsiderados(projeto).map(function (d) { return d === 'tbs' ? 'tbs máxima' : d === 'tbu' ? 'tbu máxima' : 'umidade máxima'; }).join(', ');
         lista.push(p('Combinação adotada', 'maior capacidade do sistema entre 12 meses × dias de projeto que contam (' + nomesDias + ')',
                      nomeComb + ', dia de ' + rs.nomeDia + ', ' + rs.hora + ' h', W(rs.capSistemaW), FONTE_5_1_1_2, { id: 'adotada', num: rs.capSistemaW }));
-        lista.push(p('Carga do ambiente às ' + rs.hora + ' h', 'Σ carga dos ambientes na mesma hora', '', W(pt.cargaAmbHora), 'Combinação adotada (planilha v1.0.5, Resumo, bloco D)', { id: 'cargaAmb', num: pt.cargaAmbHora }));
+        lista.push(p('Carga do ambiente às ' + rs.hora + ' h', 'Σ carga dos ambientes na mesma hora', '', W(pt.cargaAmbHora), 'Combinação adotada (planilha v1.1.0, Resumo, bloco D)', { id: 'cargaAmb', num: pt.cargaAmbHora }));
         lista.push(p('+ Calor da iluminação ao retorno', 'Σ q_ret(h)', '', W(pt.retornoHora), FONTE_RETORNO, { id: 'retorno', num: pt.retornoHora }));
         passosSistema(res, projeto).forEach(function (x) { lista.push(x); });
         lista.push(p('= Capacidade do sistema', 'carga do ambiente + retorno + acréscimo', W(pt.cargaAmbHora, 1) + ' + ' + W(pt.retornoHora, 1) + ' + ' + W(pt.acrescimo, 1), W(rs.capSistemaW),
@@ -3655,7 +3863,9 @@ window.HVAC = window.HVAC || {};
    Códigos: dSistema, dAmbiente, ezAmbiente, semCredito, fabricanteSemFr, iacInvalido, frInvalido, retornoInvalido, mesFragil, dadosMensais, importacao,
    zonaUnicaVariosAmbientes, capacidadeNula, picoForaDaJanela, itemForaDaTabela, sombSobePico (info: o pico solar do vidro com dispositivo fica acima do pico sem dispositivo),
    sombExtIncompleto (beiral ou brise escolhido sem medidas: sem crédito), sombExterno (info: vidro com sombreamento externo, parte que a planilha não tem),
-   sensForaDaJanela (info: o maior calor sensível do ambiente das 24 h fica fora da janela de ocupação).
+   sensForaDaJanela (info: o maior calor sensível do ambiente das 24 h fica fora da janela de ocupação);
+   serpentina (etapa 4, avisos.serpentina): serpSaturada, serpSemSaturacao, serpArExtGoverna, serpRetornoExaustao (info), serpSeca, serpSemAdp (info),
+   serpSemResfriamento, serpEstadosDiferentes, serpErro.
    Os avisos de face que já existem (M.envoltoria().avisos: face sem composição, piso externo…) continuam em Resultados e no memorial como estão. */
 (function (H) {
   'use strict';
@@ -3769,14 +3979,38 @@ window.HVAC = window.HVAC || {};
         '. O valor é firme; o mês e a hora podem trocar com pequena variação do clima.', '#/resultados');
     }
     if (dm.climaMensal.some(function (l) { return String(l.fonte).indexOf('CONFERIR') >= 0; })) {
-      add('info', 'dadosMensais', 'Condições externas por mês e τ de céu claro: ASHRAE Climatic Design Conditions 2021 pelo serviço ashrae-meteo.info, a CONFERIR com a folha oficial da estação 833780.', '#/projeto');
+      add('info', 'dadosMensais', 'Condições externas por mês e τ de céu claro: ficha da estação 867150 do ASHRAE Fundamentals 2025, lida de uma impressão de página web de terceiro; CONFERIR com a folha oficial.', '#/projeto');
     }
+    avisosSerpentina(M.serpentina.paraProjeto(cj, pj)).forEach(function (av) { lista.push(av); });
     if (opc && opc.importacao > 0) {
       add('aviso', 'importacao', opc.importacao + (opc.importacao === 1 ? ' campo do arquivo foi substituído' : ' campos do arquivo foram substituídos') + ' na importação. Ver relatório.', '#/inicio');
     }
     return lista;
   }
 
+  /* Avisos da serpentina (etapa 4; textos S22 a S30 aprovados pelo Francisco em 2026-11-04): sp = M.serpentina.paraProjeto(cj, projeto).
+     Os mesmos itens aparecem no cartão da serpentina (Resultados), em "Antes de emitir" e nos limites do memorial */
+  function avisosSerpentina(sp) {
+    var lista = [], rota = '#/projeto';
+    function add(nivel, codigo, texto) { lista.push({ nivel: nivel, codigo: codigo, texto: texto, rota: rota }); }
+    function t(x) { return f.num(x, 1) + ' °C'; }
+    if (!sp.calculado) {
+      if (sp.motivo === 'estadosDiferentes') add('aviso', 'serpEstadosDiferentes', 'Serpentina não calculada: há ambientes com temperatura ou umidade internas diferentes, e o retorno não tem um estado único. Com todos iguais ao projeto, a serpentina aparece.');
+      else add('aviso', 'serpErro', 'Serpentina não calculada com estas entradas; os demais resultados valem. Motivo: ' + sp.mensagem);
+      return lista;
+    }
+    var r = sp.r, cod = r.avisos;
+    if (cod.indexOf('saturada') >= 0) add('aviso', 'serpSaturada', 'Serpentina: com ΔT de insuflamento de ' + t(r.dTPedido) + ' o ar sairia além da saturação. Adotado o maior ΔT possível, ' + t(r.dTMax) + ', com saída saturada.');
+    if (cod.indexOf('semSaturacao') >= 0) add('aviso', 'serpSemSaturacao', 'Serpentina: o fator de calor sensível do ambiente é baixo e a reta de carga do ambiente não alcança a saturação. Uma serpentina sozinha não entrega esse insuflamento: preveja reaquecimento ou desumidificação à parte.');
+    if (cod.indexOf('arExtGoverna') >= 0) add('aviso', 'serpArExtGoverna', 'Serpentina: o ar exterior mínimo (' + f.num(sp.cargas.qsLs, 1) + ' L/s de ar padrão) é maior que a vazão pelo ΔT. A vazão de insuflamento passa a ser a do ar exterior e o ΔT cai para ' + t(r.dT) + '.');
+    if (cod.indexOf('retornoExaustao') >= 0) add('info', 'serpRetornoExaustao', 'Serpentina: sem ar de retorno (100 % de ar exterior), o calor da iluminação ao retorno sai com a exaustão e não chega à serpentina.');
+    if (cod.indexOf('seca') >= 0) add('aviso', 'serpSeca', 'Serpentina seca: o ar que entra já está mais seco do que o insuflamento pede. Não há condensado, e a umidade do ambiente fica abaixo da de projeto.');
+    if (cod.indexOf('semAdp') >= 0) add('info', 'serpSemAdp', 'Serpentina: a reta do processo não cruza a curva de saturação; ADP e fator de by-pass não definidos.');
+    if (cod.indexOf('semResfriamento') >= 0) add('aviso', 'serpSemResfriamento', 'Serpentina: a entalpia do ar que entra não passa da de saída; a serpentina não resfria nesta condição. Confira o ΔT e as cargas.');
+    return lista;
+  }
+
+  avisos.serpentina = avisosSerpentina;
   M.avisos = avisos;
   M.sombPico = sombPico; M.textoSombPico = textoSombPico;
 })(window.HVAC);
@@ -3791,6 +4025,8 @@ window.HVAC = window.HVAC || {};
    relatório (o app recalcula). Um arquivo da versão 3 pode vir sem o bloco (a casca salva sem ele quando o cálculo falha).
    Campos novos da versão 2 (ausente ou null = padrão): projeto.sistema, projeto.dSistema, projeto.tInt, projeto.urInt, amb.tInt, amb.urInt, amb.ilum.retorno,
    amb.faces.X.extH, extHProj, extHAlt, extHFolga, extV, extVProj, extVLarg, extVFolga, extVLado (sombreamento externo do vidro, opcionais; desde a sessão C2),   amb.faces.X.somb (um dos 28 nomes de sombreamento_interno.csv), amb.faces.X.sombIac, amb.faces.X.sombFr, amb.equip[].fu (null = diversidade da NBR 16401-1:2024 Tabela C.14).
+   Campos opcionais da 0.9.0 (serpentina; ausente ou null = padrão, sem mudar o formato 3 nem abrir o relatório): projeto.dTIns (ΔT de insuflamento,
+   1 a 25 °C; padrão M.serpentina.DT_PADRAO) e projeto.qVent (calor do ventilador e dos dutos, W ≥ 0; padrão 0).
    formato.abrir(obj) nunca lança erro: devolve { ok, projeto, relatorio, versaoOrigem, versaoArquivo, motivo }. Trabalha numa cópia (o objeto recebido não muda).
    versaoArquivo = a versão gravada no arquivo (1, 2 ou 3). versaoOrigem = a versão das ENTRADAS, que é o que a casca lê para abrir o relatório
    sozinha (casca.js, pedeRelatorio): 1 para a versão 1 e 3 para as versões 2 e 3, que têm as mesmas entradas; assim o arquivo da versão 2 e o
@@ -4080,6 +4316,8 @@ window.HVAC = window.HVAC || {};
       campoNum(c, p, 'dSistema', 'Diversidade de ocupação do sistema (D)', d01, null, 'D deve ficar entre 0 e 1');
       campoNum(c, p, 'tInt', 'Temperatura interna do projeto', faixaT, null, 'a temperatura deve ficar entre 10 e 35 °C');
       campoNum(c, p, 'urInt', 'Umidade relativa interna do projeto', faixaUR, null, 'a umidade relativa deve ficar entre 20 e 80 %');
+      campoNum(c, p, 'dTIns', 'ΔT de insuflamento', function (x) { return x >= 1 && x <= 25; }, null, 'o ΔT deve ficar entre 1 e 25 °C');
+      campoNum(c, p, 'qVent', 'Calor do ventilador e dos dutos', naoNeg, null, 'o calor do ventilador não pode ser negativo');
       campoNum(c, p, 'fs', 'Fator de segurança', naoNeg, dP.fs, 'o fator de segurança não pode ser negativo');
       campoNum(c, p, 'hIni', 'Ocupação: hora inicial', function (x) { return x >= 1 && x <= 24; }, dP.hIni, 'a hora deve ficar entre 1 e 24');
       campoNum(c, p, 'hFim', 'Ocupação: hora final', function (x) { return x >= 1 && x <= 24; }, dP.hFim, 'a hora deve ficar entre 1 e 24');
@@ -4163,9 +4401,208 @@ window.HVAC = window.HVAC || {};
 })(window.HVAC);
 
 </script>
+<script>
+/* ==== js/motor/serpentina.js ==== */
+/* Serpentina de resfriamento e desumidificação (A2, etapa 3 do plano Allday + clima 2025; quadro D1 a D18 aprovado pelo Francisco em 2026-11-04,
+   sessão 2026-11-04_v0.9.0-dev-3-serpentina-a2, gerados\QUADRO_DECISOES_A2.md). Sem DOM; sobre H.motor.psicrometria (plataforma 0.6.0, f = 1).
+   Unidades: t em °C, W em kg/kg de ar seco, h em kJ/kg de ar seco, m em kg/s de ar seco, p em kPa; cargas de entrada e saída em W.
+   Estados: ambiente (a), retorno (r), exterior (o), mistura (m), entrada da serpentina (e = m + ventilador), saída = insuflamento (s).
+   - Mistura adiabática (D1): balanço de ar seco, água e energia; ASHRAE Fundamentals 2021 cap. 1 Eq. (44), p. 1.14.
+   - Retorno (D3): estado do ambiente aquecido pelo calor ao retorno, h_r = h_a + q_ret/m_r, W_r = W_a. Sem retorno (m_r = 0) esse calor sai na exaustão.
+   - Insuflamento (D4): premissa ΔT, t_s = t_a − ΔT; m_s e W_s pela solução fechada de q_s = m_s(1,006 + 1,86·W_s)·ΔT e
+     q_l = m_s(2501 + 1,86·t_a)(W_a − W_s), que somam exatamente m_s(h_a − h_s) (Eq. 30, p. 1.10). ΔT padrão 10 K, sem fonte (CONFERIR; D16).
+   - Saída saturada (D5): maior ΔT com W_s ≤ W_sat(t_s), por bissecção; ΔT acima dele → saída saturada e aviso.
+   - Serpentina seca (D6): W exigido ≥ W_e → W_s = W_e, sem condensado.
+   - Carga total (D7): q_t = m_s[(h_e − h_s) − (W_e − W_s)·h_w], h_w à tbs de saída; Fundamentals 2021 Eq. (43), p. 1.12 ("condensed water is
+     cooled to the final air temperature t2"); o S&E 2016 cap. 23 p. 23.15 diz que costuma ser a tbu de saída (no Ex. 4 adota 12 °C). Condensado m_w = m_s(W_e − W_s), Eq. (42) (D9).
+   - Latente e sensível (D8): q_lat = m_w(h_g4 − h_w4), t4 = orvalho do ar que entra, h_g = 2501 + 1,86·t (Eq. 30; o S&E 2016 imprime 1,805);
+     q_sens = q_t − q_lat, já com o subresfriamento do condensado; ASHRAE HVAC Systems and Equipment 2016 cap. 23 Eq. (36) a (40), p. 23.14 e 23.15.
+   - ADP e fator de by-pass (D10): resultados, não premissas; ADP = reta e→s prolongada até a curva de saturação (bissecção), BF = (t_s − ADP)/(t_e − ADP);
+     ASHRAE Load Calculation Applications Manual (IP), cap. 9 (PDF p. 234 e 236).
+   - Ar exterior maior que o insuflamento (D13): m_s = m_o e ΔT recalculado; "100 % de ar exterior": todo o insuflamento é ar exterior, sem retorno.
+   - Ventilador e dutos (D14; ABNT NBR 16401-1:2024 6.3.2): q_vent somado ao ar antes da serpentina, padrão 0 (premissa declarada). */
+(function (H) {
+  'use strict';
+  var P = H.motor.psicrometria;
+  var DT_PADRAO = 10;          // K, ΔT de insuflamento (premissa declarada, sem fonte: CONFERIR; Francisco, 2026-11-04)
+  var CP_A = 1.006, CP_V = 1.86, H_G0 = 2501;   // Fundamentals 2021 cap. 1 Eq. (30), p. 1.10
+  var TOL_T = 1e-10;           // K, fim das bissecções (igual à do motor comum)
+  var PASSO_T = 0.25;          // K, varredura antes da bissecção (saturação e ADP)
+  var SIS_100 = 'Zonas múltiplas com 100 % de ar exterior';
+
+  function erro(msg) { throw new RangeError('Serpentina: ' + msg); }
+  function num(x, nome) { if (typeof x !== 'number' || !isFinite(x)) erro(nome + ' inválido (' + x + ')'); return x; }
+
+  // Bissecção de g em [a, b] com g(a) ≥ 0 > g(b); devolve a (lado viável, g ≥ 0)
+  function bissecao(g, a, b) {
+    while (Math.abs(b - a) > TOL_T) { var m = (a + b) / 2; if (g(m) >= 0) a = m; else b = m; }
+    return a;
+  }
+  // Primeira troca de sinal de g (≥ 0 → < 0) andando de x0 em passos de dx até x1; null se não houver
+  function primeiraRaiz(g, x0, x1, dx) {
+    var a = x0;
+    while (dx > 0 ? a < x1 : a > x1) {
+      var b = dx > 0 ? Math.min(a + dx, x1) : Math.max(a + dx, x1);
+      if (g(b) < 0) return bissecao(g, a, b);
+      a = b;
+    }
+    return null;
+  }
+
+  /* Mistura adiabática de duas correntes (D1; Fundamentals 2021 cap. 1 Eq. 44): a = { w, h }, b = { w, h }, ma e mb em kg/s de ar seco (ma + mb > 0).
+     Devolve { m, w, h, t } (t pela Eq. 30 invertida) */
+  function mistura(a, ma, b, mb) {
+    var m = ma + mb;
+    if (!(m > 0)) erro('mistura sem vazão');
+    var w = (ma * a.w + mb * b.w) / m, h = (ma * a.h + mb * b.h) / m;
+    return { m: m, w: w, h: h, t: P.tDeEntalpia(h, w) };
+  }
+
+  /* Cargas por kg de ar seco entre a entrada (1) e a saída (2), kJ/kg (D7, D8): c = { h1, w1, h2, w2, tCond, t4 } (t4 = orvalho da entrada, °C).
+     qt = (h1 − h2) − (w1 − w2)·h_w(tCond), Eq. (43) / S&E Eq. (37); qLat = (w1 − w2)(h_g4 − h_w4), S&E Eq. (38); qSens = qt − qLat (Eq. 39a e 40) */
+  function porKg(c) {
+    var dw = c.w1 - c.w2, hw = P.hAgua(c.tCond), qt = (c.h1 - c.h2) - dw * hw;
+    var hfg4 = dw > 0 ? H_G0 + CP_V * c.t4 - P.hAgua(c.t4) : null, qLat = dw > 0 ? dw * hfg4 : 0;
+    return { dw: dw, hw: hw, hfg4: hfg4, qt: qt, qLat: qLat, qSens: qt - qLat };
+  }
+
+  /* Processo da serpentina (função pura). e = {
+       p (kPa), amb: { t, w } (estado de projeto do ambiente), qSens (W; calor sensível do ambiente sem ar exterior, > 0),
+       qLat (W; latente do ambiente: pessoas + infiltração, sinal real), qRet (W; calor ao retorno, padrão 0),
+       ext: { t, w } (ar exterior), mExt (kg/s de ar seco, ≥ 0), dT (K, padrão DT_PADRAO), qVent (W, padrão 0), cemPorCento (padrão false) }.
+     Devolve { p, dTPedido, dT, dTMax, saturada, seca, arExtGoverna, cemPorCento, mIns, mExt, mRet, lsPadrao, m3hLocal, amb, ret, ext, mis, ent, ins,
+       qAr (W, m_s·(h_e − h_s)), qTotal, qLat, qSens, fcs, mCond (kg/s), condKgH, tCond, hCond, t4, adp, bf, avisos: [códigos] }.
+     Estados com { t, w, h } (mis e ent também tpo; ins também ur e tbu). Códigos de aviso: saturada, semSaturacao, arExtGoverna, retornoExaustao, seca, semAdp, semResfriamento. */
+  function processo(e) {
+    var p = num(e.p, 'pressão'), ta = num(e.amb.t, 't do ambiente'), wa = num(e.amb.w, 'W do ambiente');
+    var qs = num(e.qSens, 'calor sensível do ambiente') / 1000, ql = num(e.qLat, 'calor latente do ambiente') / 1000;
+    var qRet = (e.qRet == null ? 0 : num(e.qRet, 'calor ao retorno')) / 1000, qVent = (e.qVent == null ? 0 : num(e.qVent, 'calor do ventilador')) / 1000;
+    var to = num(e.ext.t, 't exterior'), wo = num(e.ext.w, 'W exterior'), mExt = num(e.mExt, 'vazão de ar exterior');
+    var dTPedido = e.dT == null ? DT_PADRAO : num(e.dT, 'ΔT de insuflamento'), cem = !!e.cemPorCento, avisos = [];
+    if (!(p > 0)) erro('pressão ' + p + ' kPa não positiva');
+    if (!(qs > 0)) erro('calor sensível do ambiente ' + e.qSens + ' W: a serpentina só é calculada com carga sensível positiva');
+    if (!(dTPedido > 0)) erro('ΔT de insuflamento ' + dTPedido + ' K: tem de ser positivo');
+    if (!(wa > 0) || wa >= P.ws(ta, p)) erro('W do ambiente ' + wa + ' fora de (0; W de saturação a ' + ta + ' °C)');
+    if (!(wo >= 0) || wo > P.ws(to, p) * (1 + 1e-12)) erro('W exterior ' + wo + ' fora de [0; W de saturação a ' + to + ' °C]');
+    if (mExt < 0) erro('vazão de ar exterior negativa');
+
+    // D4: m_s e W_s pelo ΔT (solução fechada); cpA = cp do ar úmido do ambiente, L = 2501 + 1,86·t_a
+    var cpA = CP_A + CP_V * wa, L = H_G0 + CP_V * ta;
+    var mDeDT = function (dT) { return (qs / dT + CP_V * ql / L) / cpA; };
+    var dTDeM = function (m) { return qs / (m * cpA - CP_V * ql / L); };
+    var wDeM = function (m) { return wa - ql / (m * L); };
+    // D5: maior ΔT com saída não supersaturada (g ≥ 0); com ql ≤ 0 o W de saída é ≥ W_a e g cai só pelo W de saturação.
+    // Com ql > 0 o W de saída zera em dT0 (m_s = q_l ÷ (W_a·L)); latente alto (fator de calor sensível baixo): a reta de carga do ambiente chega a
+    // W = 0 sem tocar a saturação → dTMax nulo, aviso semSaturacao (exige reaquecimento) e erro se o ΔT deixa o insuflamento sem umidade
+    var tMin = Math.max(P.T_MIN, -50), dT0 = ql > 0 ? dTDeM(ql / (wa * L)) : Infinity;
+    var g = function (dT) { var m = mDeDT(dT); return m > 0 ? P.ws(ta - dT, p) - wDeM(m) : -1; };
+    var dTMax = primeiraRaiz(g, 0, Math.min(ta - tMin, dT0), PASSO_T);
+    var dT = dTPedido, saturada = false;
+    if (dTMax !== null && dTPedido > dTMax) { dT = dTMax; saturada = true; avisos.push('saturada'); }
+    if (dTMax === null && ql > 0) avisos.push('semSaturacao');
+    var mIns = mDeDT(dT), arExtGoverna = false;
+    if (!(mIns > 0)) erro('vazão de insuflamento não positiva com ΔT ' + dT + ' K');
+
+    // D13: ar exterior e retorno; o ar exterior nunca fica abaixo do mínimo, também com 100 % de ar exterior
+    // revisor 2026-11-04 (etapa 4, item 1): com o ar exterior governando o ΔT cai abaixo do limite e a saída deixa de ficar saturada
+    if (mExt > mIns) {
+      mIns = mExt; dT = dTDeM(mIns); arExtGoverna = true; avisos.push('arExtGoverna');
+      if (saturada) { saturada = false; avisos.splice(avisos.indexOf('saturada'), 1); }
+    }
+    if (cem) mExt = mIns;
+    var mRet = cem ? 0 : mIns - mExt;
+    var wReq = wDeM(mIns), ts = ta - dT;
+    if (!(wReq > 0)) erro('com ΔT ' + dT + ' K o insuflamento ficaria sem umidade (W ≤ 0): a reta de carga do ambiente não alcança a saturação; reduza o ΔT ou preveja reaquecimento');
+
+    // D3: retorno; D1: mistura; D14: ventilador antes da serpentina
+    var ha = P.entalpia(ta, wa), hr = ha;
+    if (mRet > 0) hr = ha + qRet / mRet;
+    else if (qRet > 0) avisos.push('retornoExaustao');
+    var ho = P.entalpia(to, wo);
+    var mx = mistura({ w: wo, h: ho }, mExt, { w: wa, h: hr }, mRet), wm = mx.w, hm = mx.h, tm = mx.t;
+    var he = hm + qVent / mIns, te = P.tDeEntalpia(he, wm);
+
+    // D6: seca quando o W exigido não fica abaixo do W que entra
+    var seca = wReq >= wm, ws = seca ? wm : wReq;
+    if (seca) avisos.push('seca');
+    var hs = P.entalpia(ts, ws);
+    if (!(he > hs)) avisos.push('semResfriamento');
+
+    // D7 a D9: carga total, condensado, latente e sensível
+    var t4 = wm > 0 ? P.tpo(P.pwDeW(wm, p)) : null, tCond = ts;
+    var k = porKg({ h1: he, w1: wm, h2: hs, w2: ws, tCond: tCond, t4: t4 });
+    var mCond = mIns * k.dw, hCond = k.hw, qAr = mIns * (he - hs), qT = mIns * k.qt, qLat = mIns * k.qLat, qSens = mIns * k.qSens;
+
+    // D10: ADP na reta e→s prolongada abaixo de t_s; sem condensado não há ADP
+    var adp = null, bf = null;
+    if (mCond > 0 && te > ts) {
+      var inc = (wm - ws) / (te - ts), tZero = ts - ws / inc;
+      var gl = function (t) { return P.ws(t, p) - (ws + inc * (t - ts)); };
+      adp = primeiraRaiz(gl, ts, Math.max(tMin, tZero), -PASSO_T);
+      if (adp !== null) bf = (ts - adp) / (te - adp);
+      else avisos.push('semAdp');
+    }
+
+    var vs = P.volume(ts, ws, p), ehSat = ws >= P.ws(ts, p) * (1 - 1e-9);
+    return {
+      p: p, dTPedido: dTPedido, dT: dT, dTMax: dTMax, saturada: saturada, seca: seca, arExtGoverna: arExtGoverna, cemPorCento: cem,
+      mIns: mIns, mExt: mExt, mRet: mRet, lsPadrao: mIns / H.motor.psicro.RHO_PADRAO * 1000, m3hLocal: mIns * vs * 3600,
+      amb: { t: ta, w: wa, h: ha }, ret: { t: P.tDeEntalpia(hr, wa), w: wa, h: hr }, ext: { t: to, w: wo, h: ho },
+      mis: { t: tm, w: wm, h: hm, tpo: t4 }, ent: { t: te, w: wm, h: he, tpo: t4 },
+      ins: { t: ts, w: ws, h: hs, ur: P.pwDeW(ws, p) / P.pws(ts), tbu: ehSat ? ts : P.tbu(ts, ws, p) },
+      qAr: qAr * 1000, qTotal: qT * 1000, qLat: qLat * 1000, qSens: qSens * 1000, fcs: qT !== 0 ? qSens / qT : NaN,
+      mCond: mCond, condKgH: mCond * 3600, tCond: tCond, hCond: hCond, t4: t4, adp: adp, bf: bf, avisos: avisos
+    };
+  }
+
+  /* Serpentina do conjunto na combinação adotada da capacidade do sistema (D11): mês, dia e hora de cj.adotado; t_o e W_o da varredura nessa hora;
+     soma dos ambientes nessa hora: q_s = calor sensível do ambiente sem ar exterior (sensAmb, com infiltração), q_l = pessoas + infiltração (sinal
+     real), q_ret = calor da iluminação ao retorno; ar exterior = Qs do sistema (ΣQz/Ev, L/s de ar padrão) × 1,2 kg/m³ como massa de ar seco (D2).
+     cj = M.conjunto(E); op = { dT, qVent } (opcionais). Ambientes com T ou UR diferentes (D12): { calculado: false, motivo: 'estadosDiferentes' }.
+     Devolve { calculado: true, mes, dia, hora, r (= processo), cargas: { qSensW, qLatW, qRetW, mExtMin (kg/s), qsLs (L/s de ar padrão) }, ponte } com a identidade D15 (só vale com latente bruto ≥ 0 em todos os ambientes, no
+     acréscimo por Ev, sem serpentina seca e com retorno): m_s(h_e − h_s) = capacidade do sistema + m_o·1,86·t_a·(W_o − W_a) + q_vent.
+       ponte = { capSistemaW, extraW, qVentW, qArW, difW, valida, confere (|difW| ≤ 1e-6 W) } */
+  function doConjunto(cj, E, op) {
+    op = op || {};
+    var M = H.motor, pj = E.projeto, ad = cj.adotado, ih = ad.hora - 1, chave = ad.mes + '|' + ad.dia, x = cj.combos[chave];
+    var xs = cj.ambientes.map(function (r) { return r.meses[ad.mes][ad.dia]; });
+    var ta = xs[0].tInt, wa = xs[0].wInt;
+    if (xs.some(function (y) { return y.tInt !== ta || y.wInt !== wa; })) return { calculado: false, motivo: 'estadosDiferentes', mes: ad.mes, dia: ad.dia, hora: ad.hora };
+    var qs = 0, ql = 0, qRet = 0, latOk = true;
+    xs.forEach(function (y) {
+      qs += y.sensAmb[ih]; ql += y.perfil.pessoasLat[ih] + y.perfil.infLat[ih]; qRet += y.retorno[ih];
+      if (y.latBruto[ih] < 0) latOk = false;
+    });
+    var sr = x.sistema.series;
+    if (sr.acrLat[ih] < 0) latOk = false;
+    var to = xs[0].clima.to[ih], wo = xs[0].clima.wo[ih], mExt = cj.sistema.qs / 1000 * M.psicro.RHO_PADRAO;
+    var cem = cj.sistema.tipo === SIS_100;
+    var r = processo({ p: M.psicro.pressao(H.dados.motor.clima.altitude), amb: { t: ta, w: wa }, qSens: qs, qLat: ql, qRet: qRet,
+      ext: { t: to, w: wo }, mExt: mExt, dT: op.dT, qVent: op.qVent, cemPorCento: cem });
+    var extra = r.mExt * CP_V * ta * (wo - wa) * 1000, qVentW = op.qVent == null ? 0 : op.qVent;
+    var dif = r.qAr - (ad.cap + extra + qVentW), valida = latOk && !r.seca && !cem && r.mRet > 0;
+    return { calculado: true, mes: ad.mes, dia: ad.dia, hora: ad.hora, r: r,
+      cargas: { qSensW: qs, qLatW: ql, qRetW: qRet, mExtMin: mExt, qsLs: cj.sistema.qs },
+      ponte: { capSistemaW: ad.cap, extraW: extra, qVentW: qVentW, qArW: r.qAr, difW: dif, valida: valida, confere: valida && Math.abs(dif) <= 1e-6 } };
+  }
+
+  /* Serpentina para a tela (etapa 4): premissas do projeto (projeto.dTIns e projeto.qVent; vazio = padrão) e erro de entrada sem quebrar a tela
+     (revisor D-8): devolve o de doConjunto ou { calculado: false, motivo: 'erro', mensagem } (mensagem sem o prefixo 'Serpentina: ') */
+  function paraProjeto(cj, projeto) {
+    try { return doConjunto(cj, { projeto: projeto }, { dT: projeto.dTIns, qVent: projeto.qVent }); }
+    catch (e) {
+      if (e instanceof RangeError) return { calculado: false, motivo: 'erro', mensagem: String(e.message).replace(/^Serpentina: /, '') };
+      throw e;
+    }
+  }
+
+  H.motor.serpentina = { DT_PADRAO: DT_PADRAO, SIS_100: SIS_100, mistura: mistura, porKg: porKg, processo: processo, doConjunto: doConjunto, paraProjeto: paraProjeto };
+})(window.HVAC);
+
+</script>
 <!-- Plataforma: componentes e casca -->
 <script>
-/* ==== plataforma v0.5.1: js/interface/componentes.js ==== */
+/* ==== plataforma v0.6.0: js/interface/componentes.js ==== */
 /* Plataforma HVAC. Componentes do guia de interface: campo com estado, selos, valor calculado, seletor, segmentado, passos,
    cabeçalho de tela, indicador, bloco recolhível, barras, tabela de passos e, desde a v0.4.0, a lista de cartões do celular.
    Só montam HTML; não conhecem app nem motor.
@@ -4327,7 +4764,7 @@ window.HVAC = window.HVAC || {};
 
 </script>
 <script>
-/* ==== plataforma v0.5.1: js/interface/casca.js ==== */
+/* ==== plataforma v0.6.0: js/interface/casca.js ==== */
 /* Plataforma HVAC. Casca comum dos apps: estado, armazenamento, rotas, trilha, faixa de resultado, gaveta, janela, paleta de comandos,
    tema, modo aprendizado, arquivo de projeto com relatório de importação e impressão do memorial; desde a v0.4.0, o celular
    (Menu, barra de passos, Voltar, dica por toque, tabelas que rolam, memorial em escala, teclado), só com a tela estreita.
@@ -5007,7 +5444,7 @@ window.HVAC = window.HVAC || {};
   var f = H.util.fmt, esc = f.esc, C = H.ui.c, tab = H.dados.tab, clima = H.dados.clima;
   var FACES = { N: 'Norte', L: 'Leste', S: 'Sul', O: 'Oeste', C: 'Cobertura', P: 'Piso' };
   var FONTE_INTERNA = '24 °C e 50 %: par adotado como padrão do app, editável. A ABNT NBR 16401-1:2024 5.2.1 (PDF p. 22) remete à faixa de conforto da ABNT NBR 16401-2:2024, que não fixa esse par: o item 6.3 (PDF p. 22 e 23) pede a verificação do conforto, que depende de vestimenta, atividade e velocidade do ar; com velocidade do ar menor que 0,20 m/s, o 6.3.1.2 (PDF p. 23) pede PMV entre −0,5 e +0,5.';
-  var DEMO_ENV = 'Protótipo: cálculo pelo método CTS/RTS (ASHRAE Fundamentals 2021 cap. 18) com dados da ABNT NBR 16401-1:2024 e 16401-3:2024, conferido contra a planilha Carga_Termica_Brasilia v1.0.5. Só resfriamento, Brasília. Piso em contato com o exterior não é calculado. O sombreamento externo do vidro (beiral e brise) existe só no app: a planilha não o calcula. Outras cidades ainda não existem.';
+  var DEMO_ENV = 'Protótipo: cálculo pelo método CTS/RTS (ASHRAE Fundamentals 2021 cap. 18) com dados da ABNT NBR 16401-1:2024 e 16401-3:2024 e clima de Brasília da ficha ASHRAE Fundamentals 2025, conferido contra a planilha Carga_Termica_Brasilia v1.1.0. Só resfriamento, Brasília. Piso em contato com o exterior não é calculado. O sombreamento externo do vidro (beiral e brise) existe só no app: a planilha não o calcula. Outras cidades ainda não existem.';
   var PADRAO_FACE = H.dados.exemplo.ambiente().faces.N;
   var M0 = H.motor, FM = M0.formato;
   var FONTE_RETORNO = 'ASHRAE Fundamentals 2021 cap. 18 Tabela 3: fração do calor da luminária que fica no espaço; o restante vai ao retorno (com forro plenum) e entra na capacidade do sistema, não na carga do ambiente.';
@@ -5019,9 +5456,12 @@ window.HVAC = window.HVAC || {};
     return String(ad.fonte).indexOf(SEM_C14) >= 0 ? 'Sem fator de diversidade na Tabela C.14 da ABNT NBR 16401-1:2024: ' + f.num(div, 2) + '. ' + ad.fonte
       : FONTE_FU + ' Diversidade deste item: ' + f.num(div, 2) + '. ' + ad.fonte;
   }
-  var NOTA_SAUDE = 'Ambientes de saúde: parâmetros por ambiente no Anexo A da ABNT NBR 7256:2022. Salas de TI e data center: classes da ABNT NBR 17207:2025, Tabela 1.';
+  // Como os 12 meses saem da ficha (texto B1 aprovado pelo Francisco em 2026-11-04; também no memorial)
+  var CLIMA_MESES = 'Valor anual da ficha ASHRAE Fundamentals 2025 (estação 867150) no mês do máximo de cada variável; os outros meses descem pela diferença mensal da mesma ficha. ' +
+    'Em empate, vale o primeiro mês do ano. A variação diária de cada mês é a do próprio mês. O dia de umidade máxima é o anual em todos os meses.';
+  var NOTA_SAUDE ='Ambientes de saúde: parâmetros por ambiente no Anexo A da ABNT NBR 7256:2022. Salas de TI e data center: classes da ABNT NBR 17207:2025, Tabela 1.';
 
-  /* Textos e valores de clima conforme a frequência de projeto do projeto (0,4 / 1 / 2 %): tbs, tbu e fontes das Tabelas A.4, A.5 e A.6 da ABNT NBR 16401-1:2024
+  /* Textos e valores de clima conforme a frequência de projeto do projeto (0,4 / 1 / 2 %): tbs, tbu e fontes da ficha ASHRAE Fundamentals 2025 (estação 867150)
      saem de H.dados.motor.clima e climaFonte; pressão e umidades de H.motor.contexto(projeto). Cidade, estação e condições internas
      são os de H.dados.clima (fixos: Brasília). */
   function numOu(v, padrao) { var n = M0.numeroFlex(v); return n === null || isNaN(n) ? padrao : n; }
@@ -5101,9 +5541,24 @@ window.HVAC = window.HVAC || {};
       (maior ? '<div class="aviso" style="margin:10px 0 0">No dia de ' + maior.nomeDia + ' de ' + H.motor.MESES[maior.mes - 1] + ' a capacidade seria maior: ' + f.num(capDe(maior), 0) + ' W (' + f.num(trDe(maior), 2) +
         ' TR). Ele só entra na escolha quando o sistema tem controle de umidade (passo Projeto, "Controle de umidade").</div>' : '') +
       (x.sensivelMaximo && (x.sensivelMaximo.dia !== x.dia || x.sensivelMaximo.mes !== x.mes) ? '<div class="aviso" style="margin:10px 0 0">A maior carga sensível está em outra combinação: ' + f.num(x.sensivelMaximo.valor, 0) + ' W às ' + x.sensivelMaximo.hora +
-        ' h de ' + H.motor.MESES[x.sensivelMaximo.mes - 1] + ', dia de ' + x.sensivelMaximo.nomeDia + '. Use esse valor para a capacidade sensível da serpentina; para a vazão de insuflamento, use o calor sensível do ambiente (Resultados, Por ambiente). A capacidade total sai do dia adotado.</div>' : '');
+        ' h de ' + H.motor.MESES[x.sensivelMaximo.mes - 1] + ', dia de ' + x.sensivelMaximo.nomeDia + '. A serpentina (Resultados) é calculada na combinação adotada; confira a capacidade sensível do equipamento também nesta outra combinação. A capacidade total sai do dia adotado.</div>' : '');
   }
   // ---------------------------------------------------------------- Projeto
+  /* Premissas da serpentina (etapa 4; textos S1 a S6 aprovados pelo Francisco em 2026-11-04): recolhidas no fim do cartão Sistema de ar, com o valor
+     em uso no título; vazio = padrão (M.serpentina.DT_PADRAO e 0 W) */
+  var FONTE_DT_INS = 'Diferença entre a temperatura do ambiente e a do ar insuflado; define a vazão de insuflamento. 10 °C é premissa do app, sem norma por trás (CONFERIR). Se a saída da serpentina passar da saturação, o app adota o maior ΔT possível e avisa.';
+  var FONTE_Q_VENT = 'Calor do motor do ventilador e ganho de calor nos dutos, somado ao ar antes da serpentina (ABNT NBR 16401-1:2024 6.3.2). Padrão 0 W: entra só na serpentina; a capacidade do sistema continua sem ele.';
+  function premissasSerpentina(p) {
+    var DT0 = H.motor.serpentina.DT_PADRAO, temDT = p.dTIns !== null && p.dTIns !== undefined, temQ = p.qVent !== null && p.qVent !== undefined;
+    var dT = temDT ? p.dTIns : DT0, q = temQ ? p.qVent : 0;
+    return '<details class="mais"' + (temDT || q !== 0 ? ' open' : '') + ' style="margin-top:14px"><summary>Premissas da serpentina (em uso: ' + f.num(dT, dT % 1 ? 1 : 0) + ' °C e ' + f.num(q, 0) + ' W)</summary>' +
+      '<div class="grade" style="margin-top:12px">' +
+      C.campo({ id: 'p-dtins', caminho: 'projeto.dTIns', rotulo: 'ΔT de insuflamento', valor: dT, casas: 1, unidade: '°C', min: 1, max: 25, padrao: DT0, alterado: temDT,
+                seloPadrao: 'em uso: ' + f.num(DT0, 0) + ' °C', fonte: FONTE_DT_INS }) +
+      C.campo({ id: 'p-qvent', caminho: 'projeto.qVent', rotulo: 'Calor do ventilador e dos dutos', valor: q, casas: 0, unidade: 'W', min: 0, padrao: 0, alterado: q !== 0,
+                seloPadrao: 'em uso: 0 W', fonte: FONTE_Q_VENT }) +
+      '</div></details>';
+  }
   function projeto(E) {
     var p = E.projeto, cj = H.motor.conjunto(E), clima = climaDe(p), pctF = clima.freq.replace('.', ',') + ' %';
     var rs = H.motor.resumo(cj, p), sis = rs.sistema, recirc = sis.tipo === H.motor.arExterior.SIS_RECIRC, nomeMes = H.motor.MESES[rs.mes - 1];
@@ -5115,8 +5570,8 @@ window.HVAC = window.HVAC || {};
           f.num(x.dias.tbs.tbs, 1) + ' / ' + f.num(x.dias.tbs.tbu, 1) + ' °C</td><td class="num">' + f.num(x.dias.tbu.tbs, 1) + ' / ' + f.num(x.dias.tbu.tbu, 1) + ' °C</td><td class="num">' +
           f.num(x.dias.tbs.dTbs, 1) + ' °C</td><td class="num">' + f.num(x.tauB, 3) + '</td><td class="num">' + f.num(x.tauD, 3) + '</td></tr>';
       }
-      return '<div class="sub"><h3>Condições externas por mês ' + C.selo('demo', 'CONFERIR', 'Valor anual da NBR 16401-1:2024 no mês do máximo de cada variável; os outros meses descem pela diferença mensal da ASHRAE Climatic Design Conditions 2021 (estação 833780). O dia de umidade máxima é o anual da NBR em todos os meses. Fonte da linha do mês adotado: ' + fonteMes) + '</h3>' +
-        '<p class="suave" style="margin-bottom:10px">Valor anual da NBR 16401-1:2024 no mês do máximo de cada variável; os outros meses descem pela diferença mensal da ASHRAE Climatic Design Conditions 2021 (estação 833780). O dia de umidade máxima é o anual da NBR em todos os meses.</p>' +
+      return '<div class="sub"><h3>Condições externas por mês ' + C.selo('demo', 'CONFERIR', CLIMA_MESES + ' Fonte da linha do mês adotado: ' + fonteMes) + '</h3>' +
+        '<p class="suave" style="margin-bottom:10px">' + CLIMA_MESES + '</p>' +
         '<div class="tabela-rolo"><table><thead><tr><th>Mês</th><th class="num">Dia de tbs máxima (tbs / tbu coincidente)</th><th class="num">Dia de tbu máxima (tbu / tbs coincidente)</th><th class="num">Variação diária</th><th class="num">τb</th><th class="num">τd</th></tr></thead><tbody>' +
         linhas + '</tbody></table></div></div>';
     })();
@@ -5133,13 +5588,13 @@ window.HVAC = window.HVAC || {};
       '</div></div>' +
       '<div class="cartao"><h2>Local e clima de projeto</h2><div class="grade">' +
         C.calculado({ rotulo: 'Cidade', valor: clima.cidade, fonte: clima.estacao + ', altitude ' + f.num(clima.altitude, 0) + ' m. ' + clima.fonteClima + '. Outras cidades entram com o motor completo.' }) +
-        C.campo({ id: 'c-tbs', rotulo: 'Temperatura de bulbo seco', valor: clima.tbs, casas: 1, unidade: '°C', fixo: 'padrão da norma', fonte: clima.fonteClima }) +
-        C.campo({ id: 'c-tbu', rotulo: 'Bulbo úmido coincidente', valor: clima.tbu, casas: 1, unidade: '°C', fixo: 'padrão da norma', fonte: H.dados.motor.climaFonte['tbu_' + clima.freq] }) +
-        C.campo({ id: 'c-dt', rotulo: 'Variação diária de tbs', valor: clima.dtbs, casas: 1, unidade: '°C', fixo: 'padrão da norma', fonte: H.dados.motor.climaFonte.variacao_diaria + ' (Brasília, outubro)' }) +
+        C.campo({ id: 'c-tbs', rotulo: 'Temperatura de bulbo seco', valor: clima.tbs, casas: 1, unidade: '°C', fixo: 'dado da ficha ASHRAE 2025', fonte: clima.fonteClima }) +
+        C.campo({ id: 'c-tbu', rotulo: 'Bulbo úmido coincidente', valor: clima.tbu, casas: 1, unidade: '°C', fixo: 'dado da ficha ASHRAE 2025', fonte: H.dados.motor.climaFonte['tbu_' + clima.freq] }) +
+        C.campo({ id: 'c-dt', rotulo: 'Variação diária de tbs', valor: clima.dtbs, casas: 1, unidade: '°C', fixo: 'dado da ficha ASHRAE 2025', fonte: H.dados.motor.climaFonte.variacao_diaria + ' (Brasília, setembro, mês mais quente). No cálculo, cada mês usa a variação diária do próprio mês.' }) +
       '</div>' +
       '<div style="margin-top:14px">' + C.segmentado({ rotulo: 'Frequência de projeto', caminho: 'projeto.freq', valor: clima.freq,
         opcoes: [{ v: '0.4', t: '0,4 %' }, { v: '1', t: '1 %' }, { v: '2', t: '2 %' }],
-        fonte: 'ABNT NBR 16401-1:2024 Tabelas A.4, A.5 e A.6: frequência anual de excedência das condições externas. Mais baixa = condição mais severa (0,4 % ≈ 35 h por ano). Em uso: ' + pctF + '.' }) + '</div>' +
+        fonte: 'Ficha ASHRAE Fundamentals 2025 da estação 867150: frequência anual de excedência das condições externas. Mais baixa = condição mais severa (0,4 % ≈ 35 h por ano). Em uso: ' + pctF + '.' }) + '</div>' +
       quadroMes +
       '<div class="sub"><h3>Dias de projeto em ' + nomeMes + ', mês adotado</h3><p class="suave" style="margin-bottom:10px">Em Brasília o dia mais quente é seco (' + f.num(clima.wExtTbs, 1) + ' g/kg fora, ' + f.num(clima.wInt, 1) + ' g/kg dentro). O app calcula os três dias que a norma fornece e adota o maior entre os que valem para o tipo de sistema. ' +
         C.selo('norma', 'fonte', 'ABNT NBR 16401-1:2024 5.1.1.2: a) dimensionar com tbs e tbu coincidente; b) verificar com tbu máxima e tbs coincidente; d) sistemas de baixa umidade: umidade máxima e tbs coincidente. ' + clima.fonteClima + '. ' + clima.fonteTbu + '. ' + clima.fonteUmi + '.') + '</p>' +
@@ -5157,7 +5612,8 @@ window.HVAC = window.HVAC || {};
           C.calculado({ rotulo: 'ΣQz', valor: f.num(sis.sQz, 1), unidade: 'L/s', fonte: 'Soma das vazões de ar exterior Qz de todos os ambientes (máx(Pz·Fp·D; A·Fa) ÷ Ez, ABNT NBR 16401-3:2024 5.3.1 e 5.3.2).' }) +
           C.calculado({ rotulo: 'Qs = ΣQz ÷ Ev', valor: f.num(sis.qs, 1), unidade: 'L/s', fonte: 'Qs = ΣQz ÷ Ev = ' + f.num(sis.sQz, 1) + ' ÷ ' + PS.evTxt(sis.ev) + ' = ' + f.num(sis.qs, 1) + ' L/s (' + PS.FONTE_QS + '). ' + PS.textoQt(sis) }) +
           C.calculado({ rotulo: 'Acréscimo de vazão', valor: f.num(sis.dQ, 1), unidade: 'L/s', fonte: 'Acréscimo = Qs − ΣQz = ' + f.num(sis.qs, 1) + ' − ' + f.num(sis.sQz, 1) + ' = ' + f.num(sis.dQ, 1) + ' L/s; a carga do acréscimo entra na capacidade do sistema.' }) +
-        '</div><p class="nota" style="margin-top:10px"><b>Qt.</b> ' + esc(PS.textoQt(sis)) + '</p>' : '<p class="ficha">Ev = 1: o ar exterior de cada ambiente já é o que o sistema leva; não há divisão por Ev nem campo D.</p>') + '</div>' +
+        '</div><p class="nota" style="margin-top:10px"><b>Qt.</b> ' + esc(PS.textoQt(sis)) + '</p>' : '<p class="ficha">Ev = 1: o ar exterior de cada ambiente já é o que o sistema leva; não há divisão por Ev nem campo D.</p>') +
+        premissasSerpentina(p) + '</div>' +
       '<div class="cartao"><h2>Condições internas e critérios</h2><div class="grade">' +
         C.campo({ id: 'c-tint', caminho: 'projeto.tInt', rotulo: 'Temperatura interna', valor: clima.tint, casas: 1, unidade: '°C', min: 10, max: 35, padrao: 24, alterado: p.tInt !== null && p.tInt !== undefined, seloPadrao: 'padrão do app', fonte: FONTE_INTERNA }) +
         C.campo({ id: 'c-ur', caminho: 'projeto.urInt', rotulo: 'Umidade relativa interna', valor: clima.ur, casas: 0, unidade: '%', min: 20, max: 80, padrao: 50, alterado: p.urInt !== null && p.urInt !== undefined, seloPadrao: 'padrão do app', fonte: FONTE_INTERNA }) +
@@ -5436,7 +5892,7 @@ window.HVAC = window.HVAC || {};
         'Esse valor compensa a umidade das pessoas, mas o latente do ambiente não fica abaixo de zero e nada é abatido do calor sensível.</p>' : '') +
       (r.latBrutoPico <= 0 ? '<p class="ficha">Neste pico o latente líquido do ambiente é zero: as cargas mostradas no cabeçalho dos blocos Pessoas e Ar exterior contam só a parte sensível, para somarem o total.</p>' : '') +
       '<p class="ficha">Convenção de vazão: os L/s da norma são tratados como ar padrão (1,2 kg/m³), sem redução pela altitude. ' +
-        C.selo('norma', 'critério do projeto', 'ABNT NBR 16401-3:2024 Tabela 1, Nota 1: as vazões são baseadas na massa específica de 1,2 kg/m³ (101,325 kPa, 20 °C) e podem ser ajustadas para a massa específica real. Critério deste projeto: não ajustar. A densidade real do ar em Brasília é de cerca de 1,01 kg/m³ (89,22 kPa); manter 1,2 kg/m³ dá carga de ar exterior cerca de 19 % maior e vale para qualquer altitude.') + '</p></div>';
+        C.selo('norma', 'critério do projeto', 'ABNT NBR 16401-3:2024 Tabela 1, Nota 1: as vazões são baseadas na massa específica de 1,2 kg/m³ (101,325 kPa, 20 °C) e podem ser ajustadas para a massa específica real. Critério deste projeto: não ajustar. A densidade real do ar em Brasília é de cerca de 1,00 kg/m³ (88,14 kPa) no ar externo de projeto; manter 1,2 kg/m³ dá carga de ar exterior cerca de 20 % maior e vale para qualquer altitude.') + '</p></div>';
   }
 
   function ambiente(E, i) {
@@ -5600,7 +6056,7 @@ window.HVAC = window.HVAC || {};
   }
 
   H.ui.telas = { inicio: inicio, projeto: projeto, ambientes: ambientes, ambiente: ambiente, janelaModelos: janelaModelos, cabeca: cabeca, kpi: kpi, FACES: FACES, DEMO_ENV: DEMO_ENV,
-                 tabelaDias: tabelaDias, categoriaDaFace: categoriaDaFace, climaDe: climaDe };
+                 tabelaDias: tabelaDias, categoriaDaFace: categoriaDaFace, climaDe: climaDe, CLIMA_MESES: CLIMA_MESES };
 })(window.HVAC);
 
 </script>
@@ -5613,6 +6069,7 @@ window.HVAC = window.HVAC || {};
   var f = H.util.fmt, esc = f.esc, C = H.ui.c, T = H.ui.telas, M = H.motor;
   var DIA_CURTO = { tbs: 'tbs máx.', tbu: 'tbu máx.', umi: 'umidade máx.' };
   var BTU_POR_W = 3.41214;
+  var NOTA_VENT = 'O calor do ventilador e dos dutos pode ser informado nas premissas da serpentina (passo Projeto, Sistema de ar); a capacidade do sistema continua sem ele.';
 
   function mes(n) { return M.MESES[n - 1]; }
   function numBtn(chave, texto) { return '<button type="button" class="valor-calc num" data-acao="conta" data-chave="' + chave + '" title="Abrir a conta">' + texto + '</button>'; }
@@ -5753,7 +6210,7 @@ window.HVAC = window.HVAC || {};
     avisosDe(E, cj).forEach(function (av) {
       itens.push([av.nivel === 'aviso' ? '!' : 'i', esc(av.texto) + (av.rota ? ' <a href="' + av.rota + '">Abrir</a>' : '')]);
     });
-    itens.push(['!', 'A capacidade do sistema não inclui o calor dos ventiladores, o ganho de calor nos dutos nem o calor das bombas (ABNT NBR 16401-1:2024 6.3.2 e 6.4.2): acrescente-os na seleção dos equipamentos.']);
+    itens.push(['!', 'A capacidade do sistema não inclui o calor dos ventiladores, o ganho de calor nos dutos nem o calor das bombas (ABNT NBR 16401-1:2024 6.3.2 e 6.4.2): acrescente-os na seleção dos equipamentos. ' + NOTA_VENT]);
     itens.push(['!', esc(T.DEMO_ENV)]);
     return '<ul class="pend">' + itens.map(function (x) { return '<li><span class="selo ' + (x[0] === '!' ? 'alterado' : 'norma') + '" aria-hidden="true">' + x[0] + '</span><span>' + x[1] + '</span></li>'; }).join('') + '</ul>';
   }
@@ -5806,6 +6263,52 @@ window.HVAC = window.HVAC || {};
       'Como o valor de cada ambiente, não inclui ar exterior nem calor ao retorno: não é a carga sensível da serpentina.</p>';
   }
 
+  /* Serpentina de resfriamento (etapa 4; textos S8 a S21 aprovados pelo Francisco em 2026-11-04): estados do ar e resultados de M.serpentina.paraProjeto,
+     na combinação adotada do sistema; avisos de M.avisos.serpentina. folha = memorial (sem botão de conta nem link) */
+  function serpentina(E, cj, rs, folha) {
+    var sp = M.serpentina.paraProjeto(cj, E.projeto), avs = M.avisos.serpentina(sp);
+    var avHtml = !avs.length ? '' : folha ? '<ul>' + avs.map(function (a) { return '<li>' + esc(a.texto) + '</li>'; }).join('') + '</ul>'
+      : '<ul class="pend" style="margin-top:12px">' + avs.map(function (a) {
+          return '<li><span class="selo ' + (a.nivel === 'aviso' ? 'alterado' : 'norma') + '" aria-hidden="true">' + (a.nivel === 'aviso' ? '!' : 'i') + '</span><span>' + esc(a.texto) + '</span></li>';
+        }).join('') + '</ul>';
+    if (!sp.calculado) return avHtml;
+    var r = sp.r, pt = sp.ponte, qt = f.num(r.qTotal, 0) + ' W', seca = !(r.mCond > 0);
+    function est(nome, x) { return '<tr><td>' + nome + '</td><td class="num">' + f.num(x.t, 1) + '</td><td class="num">' + f.num(x.w * 1000, 2) + '</td><td class="num">' + f.num(x.h, 1) + '</td></tr>'; }
+    function lin(nome, valor) { return '<tr><td>' + nome + '</td><td class="num">' + valor + '</td></tr>'; }
+    var dT = r.arExtGoverna ? f.num(r.dT, 1) + ' °C (vazão do ar exterior)' : r.saturada ? 'pedido ' + f.num(r.dTPedido, 1) + ' °C; adotado ' + f.num(r.dT, 1) + ' °C (saída saturada)' : f.num(r.dT, 1) + ' °C (em uso)';
+    var conf = pt.valida
+      ? 'Conferência: vazão × (h de entrada − h de saída) = ' + f.num(pt.qArW, 0) + ' W = capacidade do sistema ' + f.num(pt.capSistemaW, 0) + ' W + ' + f.num(pt.extraW, 0) +
+        ' W da umidade do ar exterior (1,86 × t do ambiente × diferença de umidade) + ' + f.num(pt.qVentW, 0) + ' W do ventilador. A carga da serpentina (' + qt + ') desconta a entalpia do condensado.'
+      : 'Conferência com a capacidade do sistema: não se aplica nesta condição (serpentina seca, 100 % de ar exterior, sem retorno ou latente negativo em algum ambiente).';
+    return '<p class="' + (folha ? 'nota' : 'suave') + '" style="margin-bottom:10px">' + mes(sp.mes) + ', dia de ' + rs.nomeDia + ', ' + sp.hora + ' h: a combinação adotada do sistema. Sem fator de segurança.</p>' +
+      '<div class="tabela-rolo"><table><thead><tr><th>Ar</th><th class="num">tbs (°C)</th><th class="num">Umidade absoluta (g/kg)</th><th class="num">Entalpia (kJ/kg)</th></tr></thead><tbody>' +
+        est('Exterior', r.ext) + (r.mRet > 0 ? est('Retorno', r.ret) : '<tr><td>Retorno</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>') +
+        est('Mistura', r.mis) + est('Entrada da serpentina', r.ent) + est('Insuflamento', r.ins) + '</tbody></table></div>' +
+      '<div class="tabela-rolo" style="margin-top:14px"><table class="ponte"><tbody>' +
+        lin('Vazão de insuflamento', f.num(r.lsPadrao, 0) + ' L/s de ar padrão (' + f.num(r.m3hLocal, 0) + ' m³/h no local)') +
+        lin('Insuflamento', f.num(r.ins.t, 1) + ' °C, UR ' + f.num(r.ins.ur * 100, 0) + ' %, tbu ' + f.num(r.ins.tbu, 1) + ' °C') +
+        lin('ΔT de insuflamento', dT) +
+        lin('Carga total da serpentina', folha ? qt : numBtn('serpentina', qt)) +
+        lin('Calor sensível da serpentina', f.num(r.qSens, 0) + ' W') +
+        lin('Calor latente da serpentina', f.num(r.qLat, 0) + ' W') +
+        lin('Fator de calor sensível da serpentina', f.num(r.fcs, 2)) +
+        lin('Condensado', f.num(r.condKgH, 2) + ' kg/h') +
+        lin('Ponto de orvalho do aparelho (ADP)', r.adp !== null ? f.num(r.adp, 1) + ' °C' : seca ? 'não se aplica (serpentina seca)' : '—') +
+        lin('Fator de by-pass', r.bf !== null ? f.num(r.bf, 2) : seca ? 'não se aplica (serpentina seca)' : '—') +
+      '</tbody></table></div>' +
+      '<p class="fraco" style="margin-top:8px">' + conf + '</p>' + avHtml +
+      (folha ? '' : '<p style="margin-top:10px"><a href="#/projeto">Alterar as premissas no passo Projeto</a></p>');
+  }
+  // Linha "Serpentina" das bases de cálculo do memorial (texto S-g aprovado em 2026-11-04), com os valores em uso
+  function baseSerpentina(p) {
+    var dT = p.dTIns === null || p.dTIns === undefined ? M.serpentina.DT_PADRAO : p.dTIns, q = p.qVent === null || p.qVent === undefined ? 0 : p.qVent;
+    return 'Calculada na combinação adotada do sistema, com o estado de projeto do ambiente (todos os ambientes iguais). Vazão de insuflamento pelo ΔT de insuflamento (em uso: ' +
+      f.num(dT, dT % 1 ? 1 : 0) + ' °C; 10 °C é premissa do app, CONFERIR), limitada pela saturação da saída e nunca abaixo do ar exterior mínimo. Mistura adiabática do ar exterior (Qs × 1,2 kg/m³) ' +
+      'com o retorno (ar do ambiente mais o calor da iluminação ao retorno); calor do ventilador e dos dutos somado antes da serpentina (em uso: ' + f.num(q, 0) + ' W). ' +
+      'Carga total pela diferença de entalpia menos a entalpia do condensado, à tbs de saída (ASHRAE Fundamentals 2021 cap. 1, Eq. (42) e (43)); latente e sensível pelo ASHRAE HVAC Systems and Equipment 2016 cap. 23, ' +
+      'Eq. (36) a (40); ADP e fator de by-pass como resultado (ASHRAE Load Calculation Applications Manual, cap. 9). Sem fator de segurança.';
+  }
+
   var kpiMes = C.kpi, tabPassos = C.tabPassos;   // componentes comuns (plataforma)
 
   function resultados(E) {
@@ -5826,6 +6329,7 @@ window.HVAC = window.HVAC || {};
       C.aprender('A capacidade de projeto parte da carga do ambiente, soma o calor da iluminação que vai ao retorno e o acréscimo de ar exterior do sistema (capacidade do sistema) e acrescenta o fator de segurança. A carga soma o calor sensível (temperatura) e o latente (umidade).') +
       hero +
       '<div class="cartao"><h2>Do ambiente ao sistema</h2><p class="suave" style="margin-bottom:10px">' + mes(rs.mes) + ', dia de ' + rs.nomeDia + ', ' + rs.hora + ' h: a combinação de maior capacidade do sistema entre os 12 meses.</p>' + quadroPonte(rs, E.projeto) + '</div>' +
+      '<div class="cartao" id="serpentina"><h2>Serpentina de resfriamento</h2>' + serpentina(E, cj, rs, false) + '</div>' +
       '<div class="cartao"><h2>Varredura dos 12 meses</h2><p class="suave" style="margin-bottom:10px">Carga do ambiente e capacidade do sistema de cada mês, nos três dias de projeto, com a hora do pico. Adota-se a maior capacidade entre as combinações que contam.</p>' +
         tabelaVarredura(rs.meses, 'Capacidade do sistema') + avisoFragil(rs) + '</div>' +
       '<div class="cartao"><h2>Dias de projeto em ' + mes(rs.mes) + ', mês adotado</h2>' + T.tabelaDias(cj) + '</div>' +
@@ -5850,7 +6354,7 @@ window.HVAC = window.HVAC || {};
         f.num(x.dias.tbu.tbs, 1) + ' / ' + f.num(x.dias.tbu.tbu, 1) + ' °C</td><td class="num">' + f.num(x.dias.tbs.dTbs, 1) + ' °C</td><td class="num">' + f.num(x.tauB, 3) + '</td><td class="num">' + f.num(x.tauD, 3) + '</td></tr>';
     }
     return '<table><thead><tr><th>Mês</th><th class="num">Dia de tbs máxima (tbs / tbu coincidente)</th><th class="num">Dia de tbu máxima (tbu / tbs coincidente)</th><th class="num">Variação diária</th><th class="num">τb</th><th class="num">τd</th></tr></thead><tbody>' + linhas + '</tbody></table>' +
-      '<p class="nota"><b>CONFERIR.</b> Valor anual da NBR 16401-1:2024 no mês do máximo de cada variável; os outros meses descem pela diferença mensal da ASHRAE Climatic Design Conditions 2021 (estação 833780). O dia de umidade máxima é o anual da NBR em todos os meses. ' +
+      '<p class="nota"><b>CONFERIR.</b> ' + T.CLIMA_MESES + ' ' +
       'Fonte da linha do mês adotado: ' + esc(H.dados.motor.climaMensal[mesAdotado - 1].fonte) + '.</p>';
   }
 
@@ -5885,25 +6389,26 @@ window.HVAC = window.HVAC || {};
       '<p class="nota">' + esc(T.DEMO_ENV) + ' Gerado pelo app v' + H.versao + '.</p>';
 
     s += '<h2>1. Bases de cálculo</h2><table><tbody>' +
-      '<tr><td>Normas</td><td>ABNT NBR 16401-1:2024 e 16401-3:2024; ASHRAE Handbook Fundamentals 2021 (cap. 1, 14, 15 e 18)</td></tr>' +
-      '<tr><td>Método</td><td>Balanço horário pelas séries CTS e RTS (ASHRAE Fundamentals 2021 cap. 18), com a condução apresentada como q = U × A × CLTD equivalente. Varredura dos 12 meses (irradiância solar do dia 21 de cada mês) × 3 dias de projeto, com as condições externas de cada mês pela opção E (valor anual da NBR no mês do máximo; demais meses pela diferença mensal da ASHRAE Climatic Design Conditions 2021) e adoção da combinação de maior capacidade do sistema. Vidro pelo método do cap. 18: ganho direto com IAC(θ, Ω), ganho difuso com IACdif e fração radiante do dispositivo, com os IAC das Tabelas 14A, 14B e 14G do ASHRAE Fundamentals 2021 cap. 15 (p. 15.39 a 15.41 e 15.50 a 15.52).</td></tr>' +
+      '<tr><td>Normas</td><td>ABNT NBR 16401-1:2024 e 16401-3:2024; ASHRAE Handbook Fundamentals 2021 (cap. 1, 14, 15 e 18); ASHRAE Handbook Fundamentals 2025, ficha climática da estação 867150 (CONFERIR); ASHRAE Handbook HVAC Systems and Equipment 2016 (cap. 23, serpentina)</td></tr>' +
+      '<tr><td>Método</td><td>Balanço horário pelas séries CTS e RTS (ASHRAE Fundamentals 2021 cap. 18), com a condução apresentada como q = U × A × CLTD equivalente. Varredura dos 12 meses (irradiância solar do dia 21 de cada mês) × 3 dias de projeto, com as condições externas de cada mês pela opção E (valor anual da ficha ASHRAE 2025 no mês do máximo; demais meses pela diferença mensal da mesma ficha; variação diária do próprio mês) e adoção da combinação de maior capacidade do sistema. Vidro pelo método do cap. 18: ganho direto com IAC(θ, Ω), ganho difuso com IACdif e fração radiante do dispositivo, com os IAC das Tabelas 14A, 14B e 14G do ASHRAE Fundamentals 2021 cap. 15 (p. 15.39 a 15.41 e 15.50 a 15.52).</td></tr>' +
       (temSombExt ? '<tr><td>Sombreamento externo do vidro</td><td>' + esc(H.motor.passos.SOMB_EXT) + '.</td></tr>' : '') +
       '<tr><td>Cobertura e retorno pelo forro</td><td>O ganho de calor da cobertura entra inteiro na carga do ambiente, também quando o retorno é pelo forro (premissa do app e da planilha de conferência, a favor da carga do ambiente). ' +
       'No exemplo do ASHRAE Fundamentals 2021 cap. 18, com retorno pelo forro, 30 % da carga da cobertura vai ao ar de retorno (formulário da Tabela 34, p. 18.54, campo "Roof % to RA", e texto da p. 18.56). O calor da iluminação ao retorno é tratado à parte (capacidade do sistema).</td></tr>' +
       '<tr><td>Vidro: transmitância U</td><td>O U dos vidros é o de centro de vidro, sem o caixilho (ASHRAE Fundamentals 2021 cap. 15 Tabela 4, p. 15.9 e 15.10): 5,9 W/(m²·°C) no vidro simples e 2,73 no duplo. Com caixilho de alumínio sem corte térmico a mesma tabela dá, no vidro simples, 6,38 (janela fixa) e 7,01 W/(m²·°C) (janela de abrir), isto é, 8 % e 19 % a mais de calor por condução no vidro. Premissa do app: o cálculo usa o valor de centro de vidro; cabe ao projetista avaliar o efeito do caixilho.</td></tr>' +
       '<tr><td>Local</td><td>' + esc(clima.cidade) + ', ' + esc(clima.estacao) + ', altitude ' + f.num(clima.altitude, 0) + ' m, pressão ' + f.num(clima.pressao, 2) + ' kPa</td></tr>' +
-      '<tr><td>Condições externas</td><td>Frequência de projeto ' + f.num(Number(clima.freq), 1) + ' %. Âncoras anuais da NBR 16401-1:2024: dia de tbs máxima, tbs ' + f.num(clima.tbs, 1) + ' °C, tbu coincidente ' + f.num(clima.tbu, 1) + ' °C (' + esc(clima.fonteClima) + '). Dia de tbu máxima: ' + esc(clima.fonteTbu) +
-      '. Dia de umidade máxima: ' + esc(clima.fonteUmi) + ' (entra na escolha só em sistema com controle de umidade; neste projeto: ' + (p.controleUmidade ? 'sim' : 'não') + '). Variação diária ' + f.num(clima.dtbs, 1) + ' °C na âncora anual. Os 12 meses estão no quadro abaixo.</td></tr>' +
+      '<tr><td>Condições externas</td><td>Frequência de projeto ' + f.num(Number(clima.freq), 1) + ' %. Âncoras anuais da ficha ASHRAE Fundamentals 2025 (estação 867150): dia de tbs máxima, tbs ' + f.num(clima.tbs, 1) + ' °C, tbu coincidente ' + f.num(clima.tbu, 1) + ' °C (' + esc(clima.fonteClima) + '). Dia de tbu máxima: ' + esc(clima.fonteTbu) +
+      '. Dia de umidade máxima: ' + esc(clima.fonteUmi) + ' (entra na escolha só em sistema com controle de umidade; neste projeto: ' + (p.controleUmidade ? 'sim' : 'não') + '). Variação diária: a de cada mês, no quadro abaixo. Os 12 meses estão no quadro abaixo.</td></tr>' +
       '<tr><td>Mês e dia adotados</td><td>' + mes(rs.mes) + ', dia de ' + rs.nomeDia + ', ' + rs.hora + ' h: maior capacidade do sistema entre as combinações que contam (12 meses × ' + M.diasConsiderados(p).length + ' dias de projeto), critério do projeto (ABNT NBR 16401-1:2024 5.1.1.2). A maior carga do ambiente no ano é ' + f.num(am.totalW, 0) + ' W (' + mes(am.mes) + ', dia de ' + am.nomeDia + ', ' + am.hora + ' h).' +
       (rs.fragil ? ' Mês frágil: ' + rs.fragil.nomeMes + ' fica a ' + f.num(rs.fragil.difW, 0) + ' W (' + f.num(rs.fragil.difPct, 2) + ' %) do adotado.' : '') + '</td></tr>' +
-      '<tr><td>Ar exterior e infiltração</td><td>Vazão da ABNT NBR 16401-3:2024 Tabela 1 (PDF p. 16 a 20) tratada como ar padrão (1,2 kg/m³), sem redução pela altitude: a Nota 1 da tabela define as vazões nessa base (critério do projeto, conservador). A infiltração (ren/h informado pelo projetista, padrão 0) também entra em ar padrão. Como renovações por hora × volume do ambiente é vazão em volume no local, multiplicá-la por 1,2 kg/m³ dá cerca de ' + f.num(pctAlt, 0) + ' % a mais de massa de ar que a ' + f.num(clima.altitude, 0) + ' m (' + f.num(rhoLocal, 3) + ' kg/m³): premissa do app, igual à da planilha de conferência, a favor da segurança. Umidades na pressão local de ' + f.num(clima.pressao, 2) + ' kPa. O ventilador de ar exterior deve ser selecionado para a mesma massa de ar: pela altitude, a vazão em volume no local é a de ar padrão × 101,325 ÷ ' + f.num(clima.pressao, 2) + ' = ' + f.num(razaoAlt, 3) + (sis.qs > 0 ? ' (neste projeto, Qs = ' + f.num(sis.qs, 1) + ' L/s de ar padrão, ou ' + f.num(sis.qs * razaoAlt, 1) + ' L/s no local)' : '') + '; com o ar externo na temperatura de bulbo seco de projeto a razão chega a cerca de 1,19.</td></tr>' +
+      '<tr><td>Ar exterior e infiltração</td><td>Vazão da ABNT NBR 16401-3:2024 Tabela 1 (PDF p. 16 a 20) tratada como ar padrão (1,2 kg/m³), sem redução pela altitude: a Nota 1 da tabela define as vazões nessa base (critério do projeto, conservador). A infiltração (ren/h informado pelo projetista, padrão 0) também entra em ar padrão. Como renovações por hora × volume do ambiente é vazão em volume no local, multiplicá-la por 1,2 kg/m³ dá cerca de ' + f.num(pctAlt, 0) + ' % a mais de massa de ar que a ' + f.num(clima.altitude, 0) + ' m (' + f.num(rhoLocal, 3) + ' kg/m³): premissa do app, igual à da planilha de conferência, a favor da segurança. Umidades na pressão local de ' + f.num(clima.pressao, 2) + ' kPa. O ventilador de ar exterior deve ser selecionado para a mesma massa de ar: pela altitude, a vazão em volume no local é a de ar padrão × 101,325 ÷ ' + f.num(clima.pressao, 2) + ' = ' + f.num(razaoAlt, 3) + (sis.qs > 0 ? ' (neste projeto, Qs = ' + f.num(sis.qs, 1) + ' L/s de ar padrão, ou ' + f.num(sis.qs * razaoAlt, 1) + ' L/s no local)' : '') + '; com o ar externo na temperatura de bulbo seco de projeto a razão chega a cerca de 1,20.</td></tr>' +
       '<tr><td>Sistema de ar</td><td>' + esc(sis.tipo) + (recirc ? '; D ' + (p.dSistema === null || p.dSistema === undefined || p.dSistema === '' ? 'vazio' : sis.dValido ? f.num(sis.d, 2) : 'inválido, tratado como vazio') : '') + '. Ev = ' + H.motor.passos.evTxt(sis.ev) + '; ΣQz = ' + f.num(sis.sQz, 1) + ' L/s; Qs = ΣQz ÷ Ev = ' + f.num(sis.qs, 1) + ' L/s (acréscimo de ' + f.num(sis.dQ, 1) + ' L/s; ' + H.motor.passos.FONTE_QS + '). Regra de Ev: ' +
       esc(H.motor.passos.FONTE_EV) + '. D do sistema: ' + H.motor.passos.FONTE_D + '. ' + H.motor.passos.FONTE_TIPOS + '. Fora da recirculação, Ev = 1.' + (recirc ? ' ' + esc(H.motor.passos.textoQt(sis)) : '') + '</td></tr>' +
+      '<tr><td>Serpentina</td><td>' + baseSerpentina(p) + '</td></tr>' +
       '<tr><td>Carga latente</td><td>Latente do ambiente = máx(0; pessoas + ar exterior + infiltração), hora a hora. Ar exterior mais seco que o ambiente não reduz a carga sensível.</td></tr>' +
       '<tr><td>Condições internas</td><td>Projeto: ' + f.num(clima.tint, 1) + ' °C e ' + f.num(clima.ur, 0) + ' % (' + esc(clima.fonteInterna) + ').' + (diferem.length ? ' Ambientes com valores próprios: ' + diferem.join('; ') + '.' : ' Nenhum ambiente difere do projeto.') + ' O calor por pessoa é o da ABNT NBR 16401-1:2024 Tabela C.1, que vale para 24 °C de bulbo seco, e não é corrigido para outra temperatura interna (Nota 1 da tabela, PDF p. 82: a 27 °C o calor total é o mesmo, o sensível cai cerca de 20 % e o latente sobe na mesma medida).</td></tr>' +
       '<tr><td>Zonas térmicas e demais fixos</td><td>Zona térmica (construção, carpete, % de vidro) define as séries RTS (ASHRAE Fundamentals 2021 cap. 18 Tabelas 19 e 20); constantes fixas em H.dados.motor.constantes (refletância do solo, α/h_o, εΔR/h_o), com a fonte no código.</td></tr>' +
       '<tr><td>Padrões do app e dados sem documento</td><td>São padrões montados pelo app, sem norma por trás, e podem ser trocados: os seis perfis de ocupação, as 24 composições padrão (parede, cobertura, divisória, piso ou teto interno e porta) e a luminária "Toda a potência no ambiente (conservador)", hipótese de 100 % do calor no ambiente e 50 % radiante. As propriedades das 23 camadas brasileiras (código B: reboco, tijolo cerâmico, bloco de concreto, laje, telhas) e o U das composições montadas com elas são atribuídos à ABNT NBR 15220-2 e -3:2005, norma que não está na biblioteca de conferência do app: valem como premissa declarada, sem conferência no documento. As 48 camadas do ASHRAE Fundamentals 2021 cap. 18 Tabela 18 (p. 18.37) foram conferidas. Confira o U de paredes e coberturas com os dados do projeto ou informe o U na face.</td></tr>' +
-      '<tr><td>O que a capacidade não inclui</td><td>A capacidade do sistema deste memorial não inclui o calor dos ventiladores, o ganho de calor nos dutos nem o calor dissipado nas bombas e nas redes de distribuição de fluidos. A ABNT NBR 16401-1:2024 manda considerá-los (6.3.2, PDF p. 25, e 6.4.2, PDF p. 26): cabe ao projetista acrescentá-los na seleção dos equipamentos.</td></tr>' +
+      '<tr><td>O que a capacidade não inclui</td><td>A capacidade do sistema deste memorial não inclui o calor dos ventiladores, o ganho de calor nos dutos nem o calor dissipado nas bombas e nas redes de distribuição de fluidos. A ABNT NBR 16401-1:2024 manda considerá-los (6.3.2, PDF p. 25, e 6.4.2, PDF p. 26): cabe ao projetista acrescentá-los na seleção dos equipamentos. ' + NOTA_VENT + '</td></tr>' +
       '<tr><td>Critérios</td><td>Fator de segurança ' + f.num(p.fs, 1) + ' %, critério do projetista (a ABNT NBR 16401-1:2024 7.1.1, PDF p. 27, pede evitar o superdimensionamento e os fatores de segurança arbitrários); hora de pico procurada entre ' + p.hIni + ' h e ' + p.hFim + ' h</td></tr></tbody></table>' +
       h3('Condições externas por mês') + quadroMeses(p, rs.mes);
 
@@ -5960,7 +6465,9 @@ window.HVAC = window.HVAC || {};
     });
 
     s += '<h2>' + (E.ambientes.length + 4) + '. Sistema de ar e capacidade do conjunto</h2>' + tabPassos(M.passos('capacidade', null, cj, p));
-    var nf = E.ambientes.length + 5;
+    var passosSerp = M.passos('serpentina', null, cj, p);
+    s += '<h2>' + (E.ambientes.length + 5) + '. Serpentina de resfriamento</h2>' + serpentina(E, cj, rs, true) + (passosSerp.length ? tabPassos(passosSerp) : '');
+    var nf = E.ambientes.length + 6;
     s += '<h2>' + nf + '. Perfil horário do conjunto</h2><p class="nota">Combinação adotada: ' + mes(rs.mes) + ', dia de ' + rs.nomeDia + '.</p>' + tabelaHoraria(cj, rs) +
       '<h2>' + (nf + 1) + '. Limites deste documento</h2><p>' + esc(T.DEMO_ENV) + '</p>' +
       '<ul>' + avisosDe(E, cj).map(function (av) { return '<li>' + esc(av.texto) + '</li>'; }).join('') + '</ul>';
@@ -5992,12 +6499,18 @@ window.HVAC = window.HVAC || {};
 
   var TITULOS = { pessoasSens: 'Pessoas: calor sensível', pessoasLat: 'Pessoas: calor latente', iluminacao: 'Iluminação', equipamentos: 'Equipamentos',
                   arExtSens: 'Ar exterior: calor sensível', arExtLat: 'Ar exterior: calor latente', infSens: 'Infiltração: calor sensível', infLat: 'Infiltração: calor latente', opaca: 'Envoltória opaca: condução',
-                  vidroCond: 'Vidros: condução', vidroSolar: 'Vidros: radiação solar', envoltoria: 'Envoltória', total: 'Carga do ambiente', capacidade: 'Capacidade de projeto', sistema: 'Capacidade do sistema' };
+                  vidroCond: 'Vidros: condução', vidroSolar: 'Vidros: radiação solar', envoltoria: 'Envoltória', total: 'Carga do ambiente', capacidade: 'Capacidade de projeto', sistema: 'Capacidade do sistema',
+                  serpentina: 'Serpentina: carga total' };
 
   // No editor de ambiente a conta é a do ambiente; em Resultados é a do conjunto, na hora do pico simultâneo
   function conta(chave, E) {
     var cj = H.motor.conjunto(E), html = '', valor = 0, hora;
     if (!TITULOS[chave]) return null;
+    if (chave === 'serpentina') {     // só em Resultados: a serpentina é do conjunto, na combinação adotada do sistema
+      var sp = H.motor.serpentina.paraProjeto(cj, E.projeto);
+      return { sobre: 'Como foi calculado às ' + cj.adotado.hora + ' h', titulo: TITULOS[chave], valor: sp.calculado ? f.num(sp.r.qTotal, 0) + ' W' : '—',
+               html: C.passos(H.motor.passos('serpentina', null, cj, E.projeto)) };
+    }
     if (U.tela === 'ambiente' && E.ambientes[U.amb]) {
       var r = cj.ambientes[U.amb];
       hora = r.horaPico;
@@ -6114,6 +6627,7 @@ window.HVAC = window.HVAC || {};
       if (/\.ar\.ez$/.test(caminho) && v <= 0) return 'Digite um número maior que zero (Ez entre 0,5 e 1,5, NBR 16401-3:2024, Tabela 3).';
       var lim = /(^|\.)tInt$/.test(caminho) ? [10, 35, 'Digite um número entre 10 e 35 °C.'] : /(^|\.)urInt$/.test(caminho) ? [20, 80, 'Digite um número entre 20 e 80 %.'] :
         /(^projeto\.dSistema|\.ar\.d)$/.test(caminho) ? [0, 1, 'Digite um número entre 0 e 1 (use vírgula para decimais).'] :
+        caminho === 'projeto.dTIns' ? [1, 25, 'Digite um número entre 1 e 25 °C.'] :
         /\.sombIac$/.test(caminho) ? [0.0000001, 1, 'Digite um número maior que 0 e até 1 (IAC do fabricante).'] : /\.sombFr$/.test(caminho) ? [0, 1, 'Digite um número entre 0 e 1 (FR do fabricante).'] :
         // Sombreamento externo do vidro (os mesmos limites de formato.js, sombExterno)
         /\.ext[HV](Proj|Folga)$/.test(caminho) ? [0, 10, 'Digite um número entre 0 e 10 m.'] : /\.ext(HAlt|VLarg)$/.test(caminho) ? [0.0000001, 20, 'Digite um número maior que 0 e até 20 m.'] : null;
