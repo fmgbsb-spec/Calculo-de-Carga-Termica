@@ -719,7 +719,7 @@ window.HVAC = window.HVAC || {};
 window.HVAC = window.HVAC || {};
 (function (H) {
   'use strict';
-  H.versao = '0.9.0';
+  H.versao = '0.9.2';
   H.dados = H.dados || {};
   H.util = H.util || {};
   H.motor = H.motor || {};
@@ -3517,7 +3517,7 @@ window.HVAC = window.HVAC || {};
       ' L/s (1,5 × ΣQz ÷ Ev). Nota: a capacidade do sistema usa ' + f.num(X, 1) + ' L/s (Qt = ΣQz, interpretação declarada deste app). Na ABNT NBR 16401-3:2024, a Eq. (9) da 5.5.10 ' +
       'dá a vazão mínima de ar primário de cada zona, a Eq. (10) da 5.5.11 não define Qt e a Tabela D.3 traz o rótulo Qs = Qz / Ev com números de 1,5 × Qz ÷ Ev.';
   }
-  var FONTE_5_1_1_2 = 'ABNT NBR 16401-1:2024 5.1.1.2 a) e b): dimensiona-se com tbs e tbu coincidente e verifica-se a carga total nas condições de tbu máxima e tbs coincidente. A umidade máxima entra só em sistema com controle de umidade (alínea d). Valores das condições: ficha ASHRAE Fundamentals 2025 (estação 867150). Adotar a maior capacidade entre os meses e os dias é critério deste projeto (' + PLANILHA + ', abas Varredura e Resumo)';
+  var FONTE_5_1_1_2 = 'ABNT NBR 16401-1:2024 5.1.1.2 a) e b): dimensiona-se com tbs e tbu coincidente e verifica-se a carga total nas condições de tbu máxima e tbs coincidente. A alínea d) trata de sistemas de baixa umidade; o app usa a umidade máxima só com controle de umidade marcado. Valores das condições: ficha ASHRAE Fundamentals 2025 (estação 867150). Adotar a maior capacidade entre os meses e os dias é critério deste projeto (' + PLANILHA + ', abas Varredura e Resumo)';
   var SERIE_NS = 'série RTS não solar da zona (ASHRAE Fundamentals 2021 cap. 18 Tabela 19)';
   var SERIE_SOL = 'série RTS solar da zona (ASHRAE Fundamentals 2021 cap. 18 Tabela 20)';
   /* Por que o pico pode subir com sombreamento interno (v0.5.1; decisão do Francisco, 2026-10-08: método do cap. 18 e aviso sombSobePico mantidos).
@@ -3626,9 +3626,9 @@ window.HVAC = window.HVAC || {};
     out.push(p('Vazão de insuflamento', 'm_s = (q_s ÷ ΔT + 1,86·q_l ÷ L) ÷ (1,006 + 1,86·W_a), L = 2501 + 1,86·t_a',
                r.arExtGoverna ? 'ar exterior maior que a vazão pelo ΔT: m_s = m_o = ' + KG(r.mIns) + '; ΔT = ' + dT(r.dT)
                  : '(' + KW(cg.qSensW) + ' ÷ ' + dT(r.dT) + ' + 1,86 × ' + KW(cg.qLatW) + ' ÷ ' + f.num(L, 2) + ') ÷ ' + f.num(cpA, 5),
-               KG(r.mIns) + ' = ' + f.num(r.lsPadrao, 0) + ' L/s de ar padrão (' + f.num(r.m3hLocal, 0) + ' m³/h no local)',
+               KG(r.mIns) + ' = ' + f.num(r.lsPadrao, 0) + ' L/s de ar padrão (' + f.num(r.m3hLocal, 0) + ' m³/h na saída da serpentina, a ' + T(r.ins.t) + ')',
                'ASHRAE Fundamentals 2021 cap. 1 Eq. (30); ΔT: premissa do app (CONFERIR)', { id: 'serpMs', num: r.mIns }));
-    out.push(p('Umidade do insuflamento', 'W_s = W_a − q_l ÷ (m_s·L)', G(r.amb.w) + ' − ' + KW(cg.qLatW) + ' ÷ (' + KG(r.mIns) + ' × ' + f.num(L, 2) + ')',
+    out.push(p('Umidade do insuflamento', 'W_s = W_a − q_l ÷ (m_s·L) × 1000 g/kg', G(r.amb.w) + ' − ' + KW(cg.qLatW) + ' ÷ (' + KG(r.mIns) + ' × ' + f.num(L, 2) + ') × 1000 g/kg',
                r.seca ? 'W exigido ' + G(wReq) + '; serpentina seca: W_s = W_e = ' + G(r.ins.w) : 'W_s = ' + G(r.ins.w), EQ30, { id: 'serpWs', num: r.ins.w }));
     out.push(p('Limite de saturação', 'maior ΔT com W_s ≤ W de saturação em t_s',
                r.dTMax === null ? 'a reta de carga do ambiente não alcança a saturação' : 'ΔT máx. = ' + dT(r.dTMax) + '; pedido ' + dT(r.dTPedido),
@@ -3864,7 +3864,7 @@ window.HVAC = window.HVAC || {};
    zonaUnicaVariosAmbientes, capacidadeNula, picoForaDaJanela, itemForaDaTabela, sombSobePico (info: o pico solar do vidro com dispositivo fica acima do pico sem dispositivo),
    sombExtIncompleto (beiral ou brise escolhido sem medidas: sem crédito), sombExterno (info: vidro com sombreamento externo, parte que a planilha não tem),
    sensForaDaJanela (info: o maior calor sensível do ambiente das 24 h fica fora da janela de ocupação);
-   serpentina (etapa 4, avisos.serpentina): serpSaturada, serpSemSaturacao, serpArExtGoverna, serpRetornoExaustao (info), serpSeca, serpSemAdp (info),
+   serpentina (etapa 4, avisos.serpentina): serpSaturada, serpSemSaturacao, serpArExtGoverna, serpRetornoExaustao (info), serpSeca, serpSemAdp,
    serpSemResfriamento, serpEstadosDiferentes, serpErro.
    Os avisos de face que já existem (M.envoltoria().avisos: face sem composição, piso externo…) continuam em Resultados e no memorial como estão. */
 (function (H) {
@@ -4000,12 +4000,12 @@ window.HVAC = window.HVAC || {};
       return lista;
     }
     var r = sp.r, cod = r.avisos;
-    if (cod.indexOf('saturada') >= 0) add('aviso', 'serpSaturada', 'Serpentina: com ΔT de insuflamento de ' + t(r.dTPedido) + ' o ar sairia além da saturação. Adotado o maior ΔT possível, ' + t(r.dTMax) + ', com saída saturada.');
+    if (cod.indexOf('saturada') >= 0) add('aviso', 'serpSaturada', 'Serpentina: com ΔT de insuflamento de ' + t(r.dTPedido) + ' o ar sairia além da saturação. Adotado o maior ΔT possível, ' + t(r.dTMax) + ', com saída saturada (fator de by-pass nulo: serpentina ideal).');
     if (cod.indexOf('semSaturacao') >= 0) add('aviso', 'serpSemSaturacao', 'Serpentina: o fator de calor sensível do ambiente é baixo e a reta de carga do ambiente não alcança a saturação. Uma serpentina sozinha não entrega esse insuflamento: preveja reaquecimento ou desumidificação à parte.');
     if (cod.indexOf('arExtGoverna') >= 0) add('aviso', 'serpArExtGoverna', 'Serpentina: o ar exterior mínimo (' + f.num(sp.cargas.qsLs, 1) + ' L/s de ar padrão) é maior que a vazão pelo ΔT. A vazão de insuflamento passa a ser a do ar exterior e o ΔT cai para ' + t(r.dT) + '.');
     if (cod.indexOf('retornoExaustao') >= 0) add('info', 'serpRetornoExaustao', 'Serpentina: sem ar de retorno (100 % de ar exterior), o calor da iluminação ao retorno sai com a exaustão e não chega à serpentina.');
     if (cod.indexOf('seca') >= 0) add('aviso', 'serpSeca', 'Serpentina seca: o ar que entra já está mais seco do que o insuflamento pede. Não há condensado, e a umidade do ambiente fica abaixo da de projeto.');
-    if (cod.indexOf('semAdp') >= 0) add('info', 'serpSemAdp', 'Serpentina: a reta do processo não cruza a curva de saturação; ADP e fator de by-pass não definidos.');
+    if (cod.indexOf('semAdp') >= 0) add('aviso', 'serpSemAdp', 'Serpentina: a reta do processo não cruza a curva de saturação; ADP e fator de by-pass não definidos. Uma serpentina sozinha não entrega esse insuflamento: preveja reaquecimento.');
     if (cod.indexOf('semResfriamento') >= 0) add('aviso', 'serpSemResfriamento', 'Serpentina: a entalpia do ar que entra não passa da de saída; a serpentina não resfria nesta condição. Confira o ΔT e as cargas.');
     return lista;
   }
@@ -4479,6 +4479,7 @@ window.HVAC = window.HVAC || {};
     var qRet = (e.qRet == null ? 0 : num(e.qRet, 'calor ao retorno')) / 1000, qVent = (e.qVent == null ? 0 : num(e.qVent, 'calor do ventilador')) / 1000;
     var to = num(e.ext.t, 't exterior'), wo = num(e.ext.w, 'W exterior'), mExt = num(e.mExt, 'vazão de ar exterior');
     var dTPedido = e.dT == null ? DT_PADRAO : num(e.dT, 'ΔT de insuflamento'), cem = !!e.cemPorCento, avisos = [];
+    if (qVent < 0) erro('o calor do ventilador não pode ser negativo.');
     if (!(p > 0)) erro('pressão ' + p + ' kPa não positiva');
     if (!(qs > 0)) erro('calor sensível do ambiente ' + e.qSens + ' W: a serpentina só é calculada com carga sensível positiva');
     if (!(dTPedido > 0)) erro('ΔT de insuflamento ' + dTPedido + ' K: tem de ser positivo');
@@ -5547,11 +5548,12 @@ window.HVAC = window.HVAC || {};
   /* Premissas da serpentina (etapa 4; textos S1 a S6 aprovados pelo Francisco em 2026-11-04): recolhidas no fim do cartão Sistema de ar, com o valor
      em uso no título; vazio = padrão (M.serpentina.DT_PADRAO e 0 W) */
   var FONTE_DT_INS = 'Diferença entre a temperatura do ambiente e a do ar insuflado; define a vazão de insuflamento. 10 °C é premissa do app, sem norma por trás (CONFERIR). Se a saída da serpentina passar da saturação, o app adota o maior ΔT possível e avisa.';
-  var FONTE_Q_VENT = 'Calor do motor do ventilador e ganho de calor nos dutos, somado ao ar antes da serpentina (ABNT NBR 16401-1:2024 6.3.2). Padrão 0 W: entra só na serpentina; a capacidade do sistema continua sem ele.';
+  var FONTE_Q_VENT = 'Calor do motor do ventilador e ganho de calor nos dutos, somado ao ar antes da serpentina (ABNT NBR 16401-1:2024 6.3.2 manda considerar esse calor; somá-lo antes da serpentina é premissa do app). Padrão 0 W: entra só na serpentina; a capacidade do sistema continua sem ele.';
+  function dtRot(v) { return f.num(v, v % 1 === 0 ? 0 : Math.abs(Math.round(v * 10) / 10 - v) > 1e-9 ? 2 : 1); }   // ΔT: 0 casas se inteiro, até 2 se tiver (R7, 0.9.1)
   function premissasSerpentina(p) {
     var DT0 = H.motor.serpentina.DT_PADRAO, temDT = p.dTIns !== null && p.dTIns !== undefined, temQ = p.qVent !== null && p.qVent !== undefined;
     var dT = temDT ? p.dTIns : DT0, q = temQ ? p.qVent : 0;
-    return '<details class="mais"' + (temDT || q !== 0 ? ' open' : '') + ' style="margin-top:14px"><summary>Premissas da serpentina (em uso: ' + f.num(dT, dT % 1 ? 1 : 0) + ' °C e ' + f.num(q, 0) + ' W)</summary>' +
+    return '<details class="mais"' + (temDT || q !== 0 ? ' open' : '') + ' style="margin-top:14px"><summary>Premissas da serpentina (em uso: ' + dtRot(dT) + ' °C e ' + f.num(q, 0) + ' W)</summary>' +
       '<div class="grade" style="margin-top:12px">' +
       C.campo({ id: 'p-dtins', caminho: 'projeto.dTIns', rotulo: 'ΔT de insuflamento', valor: dT, casas: 1, unidade: '°C', min: 1, max: 25, padrao: DT0, alterado: temDT,
                 seloPadrao: 'em uso: ' + f.num(DT0, 0) + ' °C', fonte: FONTE_DT_INS }) +
@@ -6162,11 +6164,6 @@ window.HVAC = window.HVAC || {};
     }
     return lista;
   }
-  function avisoFragil(rs) {
-    if (!rs.fragil) return '';
-    return '<div class="aviso" style="margin:10px 0 0">Mês de pico frágil: ' + rs.fragil.nomeMes + ' fica a ' + f.num(rs.fragil.difW, 0) + ' W (' + f.num(rs.fragil.difPct, 2) + ' %) de ' + mes(rs.mes) +
-      '. O valor é firme; o mês e a hora podem trocar com pequena variação do clima.</div>';
-  }
 
   function pesos(E, cj, comp, total) {
     var maior = null, dono = '';
@@ -6275,17 +6272,17 @@ window.HVAC = window.HVAC || {};
     var r = sp.r, pt = sp.ponte, qt = f.num(r.qTotal, 0) + ' W', seca = !(r.mCond > 0);
     function est(nome, x) { return '<tr><td>' + nome + '</td><td class="num">' + f.num(x.t, 1) + '</td><td class="num">' + f.num(x.w * 1000, 2) + '</td><td class="num">' + f.num(x.h, 1) + '</td></tr>'; }
     function lin(nome, valor) { return '<tr><td>' + nome + '</td><td class="num">' + valor + '</td></tr>'; }
-    var dT = r.arExtGoverna ? f.num(r.dT, 1) + ' °C (vazão do ar exterior)' : r.saturada ? 'pedido ' + f.num(r.dTPedido, 1) + ' °C; adotado ' + f.num(r.dT, 1) + ' °C (saída saturada)' : f.num(r.dT, 1) + ' °C (em uso)';
+    var dT = r.arExtGoverna ? f.num(r.dT, 1) + ' °C (vazão do ar exterior)' : r.saturada ? 'pedido ' + f.num(r.dTPedido, 1) + ' °C; adotado ' + f.num(r.dT, 1) + ' °C (saída saturada)' : dtRot(r.dT, 1) + ' °C (em uso)';
     var conf = pt.valida
       ? 'Conferência: vazão × (h de entrada − h de saída) = ' + f.num(pt.qArW, 0) + ' W = capacidade do sistema ' + f.num(pt.capSistemaW, 0) + ' W + ' + f.num(pt.extraW, 0) +
-        ' W da umidade do ar exterior (1,86 × t do ambiente × diferença de umidade) + ' + f.num(pt.qVentW, 0) + ' W do ventilador. A carga da serpentina (' + qt + ') desconta a entalpia do condensado.'
+        ' W da umidade do ar exterior (vazão de ar exterior × 1,86 × t do ambiente × diferença de umidade) + ' + f.num(pt.qVentW, 0) + ' W do ventilador. A carga da serpentina (' + qt + ') desconta a entalpia do condensado.'
       : 'Conferência com a capacidade do sistema: não se aplica nesta condição (serpentina seca, 100 % de ar exterior, sem retorno ou latente negativo em algum ambiente).';
     return '<p class="' + (folha ? 'nota' : 'suave') + '" style="margin-bottom:10px">' + mes(sp.mes) + ', dia de ' + rs.nomeDia + ', ' + sp.hora + ' h: a combinação adotada do sistema. Sem fator de segurança.</p>' +
       '<div class="tabela-rolo"><table><thead><tr><th>Ar</th><th class="num">tbs (°C)</th><th class="num">Umidade absoluta (g/kg)</th><th class="num">Entalpia (kJ/kg)</th></tr></thead><tbody>' +
         est('Exterior', r.ext) + (r.mRet > 0 ? est('Retorno', r.ret) : '<tr><td>Retorno</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>') +
         est('Mistura', r.mis) + est('Entrada da serpentina', r.ent) + est('Insuflamento', r.ins) + '</tbody></table></div>' +
       '<div class="tabela-rolo" style="margin-top:14px"><table class="ponte"><tbody>' +
-        lin('Vazão de insuflamento', f.num(r.lsPadrao, 0) + ' L/s de ar padrão (' + f.num(r.m3hLocal, 0) + ' m³/h no local)') +
+        lin('Vazão de insuflamento', f.num(r.lsPadrao, 0) + ' L/s de ar padrão (' + f.num(r.m3hLocal, 0) + ' m³/h na saída da serpentina, a ' + f.num(r.ins.t, 1) + ' °C)') +
         lin('Insuflamento', f.num(r.ins.t, 1) + ' °C, UR ' + f.num(r.ins.ur * 100, 0) + ' %, tbu ' + f.num(r.ins.tbu, 1) + ' °C') +
         lin('ΔT de insuflamento', dT) +
         lin('Carga total da serpentina', folha ? qt : numBtn('serpentina', qt)) +
@@ -6296,14 +6293,16 @@ window.HVAC = window.HVAC || {};
         lin('Ponto de orvalho do aparelho (ADP)', r.adp !== null ? f.num(r.adp, 1) + ' °C' : seca ? 'não se aplica (serpentina seca)' : '—') +
         lin('Fator de by-pass', r.bf !== null ? f.num(r.bf, 2) : seca ? 'não se aplica (serpentina seca)' : '—') +
       '</tbody></table></div>' +
-      '<p class="fraco" style="margin-top:8px">' + conf + '</p>' + avHtml +
+      '<p class="fraco" style="margin-top:8px">' + conf + '</p>' +
       (folha ? '' : '<p style="margin-top:10px"><a href="#/projeto">Alterar as premissas no passo Projeto</a></p>');
   }
+  // ΔT de insuflamento nos rótulos: casas mínimas (min) até 2 (R7, 0.9.1)
+  function dtRot(v, min) { var c = min; while (c < 2 && Math.abs(Math.round(v * Math.pow(10, c)) / Math.pow(10, c) - v) > 1e-9) c++; return f.num(v, c); }
   // Linha "Serpentina" das bases de cálculo do memorial (texto S-g aprovado em 2026-11-04), com os valores em uso
   function baseSerpentina(p) {
     var dT = p.dTIns === null || p.dTIns === undefined ? M.serpentina.DT_PADRAO : p.dTIns, q = p.qVent === null || p.qVent === undefined ? 0 : p.qVent;
     return 'Calculada na combinação adotada do sistema, com o estado de projeto do ambiente (todos os ambientes iguais). Vazão de insuflamento pelo ΔT de insuflamento (em uso: ' +
-      f.num(dT, dT % 1 ? 1 : 0) + ' °C; 10 °C é premissa do app, CONFERIR), limitada pela saturação da saída e nunca abaixo do ar exterior mínimo. Mistura adiabática do ar exterior (Qs × 1,2 kg/m³) ' +
+      dtRot(dT, 0) + ' °C; 10 °C é premissa do app, CONFERIR), limitada pela saturação da saída e nunca abaixo do ar exterior mínimo. Mistura adiabática do ar exterior (Qs × 1,2 kg/m³) ' +
       'com o retorno (ar do ambiente mais o calor da iluminação ao retorno); calor do ventilador e dos dutos somado antes da serpentina (em uso: ' + f.num(q, 0) + ' W). ' +
       'Carga total pela diferença de entalpia menos a entalpia do condensado, à tbs de saída (ASHRAE Fundamentals 2021 cap. 1, Eq. (42) e (43)); latente e sensível pelo ASHRAE HVAC Systems and Equipment 2016 cap. 23, ' +
       'Eq. (36) a (40); ADP e fator de by-pass como resultado (ASHRAE Load Calculation Applications Manual, cap. 9). Sem fator de segurança.';
@@ -6331,7 +6330,7 @@ window.HVAC = window.HVAC || {};
       '<div class="cartao"><h2>Do ambiente ao sistema</h2><p class="suave" style="margin-bottom:10px">' + mes(rs.mes) + ', dia de ' + rs.nomeDia + ', ' + rs.hora + ' h: a combinação de maior capacidade do sistema entre os 12 meses.</p>' + quadroPonte(rs, E.projeto) + '</div>' +
       '<div class="cartao" id="serpentina"><h2>Serpentina de resfriamento</h2>' + serpentina(E, cj, rs, false) + '</div>' +
       '<div class="cartao"><h2>Varredura dos 12 meses</h2><p class="suave" style="margin-bottom:10px">Carga do ambiente e capacidade do sistema de cada mês, nos três dias de projeto, com a hora do pico. Adota-se a maior capacidade entre as combinações que contam.</p>' +
-        tabelaVarredura(rs.meses, 'Capacidade do sistema') + avisoFragil(rs) + '</div>' +
+        tabelaVarredura(rs.meses, 'Capacidade do sistema') + '</div>' +
       '<div class="cartao"><h2>Dias de projeto em ' + mes(rs.mes) + ', mês adotado</h2>' + T.tabelaDias(cj) + '</div>' +
       '<div class="cartao"><h2>De onde vem a capacidade, às ' + rs.hora + ' h de ' + mes(rs.mes) + ', dia de ' + rs.nomeDia + '</h2>' + barras(comp, rs.capSistemaW) +
         (function () { var lb = 0, ll = 0; cj.ambSis.forEach(function (r) { lb += r.latBrutoPico; ll += r.latPico; });
@@ -6340,7 +6339,6 @@ window.HVAC = window.HVAC || {};
         '<details class="mais"><summary>Ver como tabela</summary><div style="margin-top:12px">' + tabelaHoraria(cj, rs) + '</div></details></div>' +
       '<div class="cartao"><h2>O que mais pesa</h2>' + pesos(E, cj, comp, rs.ponte.cargaAmbHora) + '</div>' +
       '<div class="cartao"><h2>Por ambiente</h2>' + tabelaPorAmbiente(E, cj, rs) + '</div>' +
-      '<div class="cartao"><h2>Antes de emitir</h2>' + pendencias(E, cj) + '</div>' +
       '<div class="acoes"><a class="botao prim" href="#/memorial">Abrir o memorial</a></div>';
   }
 
@@ -6389,7 +6387,7 @@ window.HVAC = window.HVAC || {};
       '<p class="nota">' + esc(T.DEMO_ENV) + ' Gerado pelo app v' + H.versao + '.</p>';
 
     s += '<h2>1. Bases de cálculo</h2><table><tbody>' +
-      '<tr><td>Normas</td><td>ABNT NBR 16401-1:2024 e 16401-3:2024; ASHRAE Handbook Fundamentals 2021 (cap. 1, 14, 15 e 18); ASHRAE Handbook Fundamentals 2025, ficha climática da estação 867150 (CONFERIR); ASHRAE Handbook HVAC Systems and Equipment 2016 (cap. 23, serpentina)</td></tr>' +
+      '<tr><td>Normas</td><td>ABNT NBR 16401-1:2024 e 16401-3:2024; ASHRAE Handbook Fundamentals 2021 (cap. 1, 14, 15 e 18); ASHRAE Handbook Fundamentals 2025, ficha climática da estação 867150 (CONFERIR); ASHRAE Handbook HVAC Systems and Equipment 2016 (cap. 23, serpentina); ASHRAE Load Calculation Applications Manual (cap. 9, ADP e fator de by-pass)</td></tr>' +
       '<tr><td>Método</td><td>Balanço horário pelas séries CTS e RTS (ASHRAE Fundamentals 2021 cap. 18), com a condução apresentada como q = U × A × CLTD equivalente. Varredura dos 12 meses (irradiância solar do dia 21 de cada mês) × 3 dias de projeto, com as condições externas de cada mês pela opção E (valor anual da ficha ASHRAE 2025 no mês do máximo; demais meses pela diferença mensal da mesma ficha; variação diária do próprio mês) e adoção da combinação de maior capacidade do sistema. Vidro pelo método do cap. 18: ganho direto com IAC(θ, Ω), ganho difuso com IACdif e fração radiante do dispositivo, com os IAC das Tabelas 14A, 14B e 14G do ASHRAE Fundamentals 2021 cap. 15 (p. 15.39 a 15.41 e 15.50 a 15.52).</td></tr>' +
       (temSombExt ? '<tr><td>Sombreamento externo do vidro</td><td>' + esc(H.motor.passos.SOMB_EXT) + '.</td></tr>' : '') +
       '<tr><td>Cobertura e retorno pelo forro</td><td>O ganho de calor da cobertura entra inteiro na carga do ambiente, também quando o retorno é pelo forro (premissa do app e da planilha de conferência, a favor da carga do ambiente). ' +
@@ -6424,7 +6422,7 @@ window.HVAC = window.HVAC || {};
       (rs.segunda ? '<tr><td>Segunda maior hora da capacidade</td><td class="num">' + f.num(rs.segunda.capW, 0) + ' W</td><td>' + rs.segunda.hora + ' h, ' + f.num(rs.segunda.difW, 0) + ' W abaixo do pico</td></tr>' : '') +
       '</tbody></table>' +
       '<p class="nota">Capacidade de projeto = capacidade do sistema × (1 + FS). Latente = latente líquido do ambiente.</p>' +
-      '<h2>3. Varredura dos 12 meses (conjunto)</h2>' + tabelaVarredura(rs.meses, 'Capacidade do sistema') + avisoFragil(rs).replace('class="aviso"', 'class="nota"') +
+      '<h2>3. Varredura dos 12 meses (conjunto)</h2>' + tabelaVarredura(rs.meses, 'Capacidade do sistema') +
       h3('Dias de projeto do conjunto, em ' + mes(rs.mes) + ', mês adotado') + T.tabelaDias(cj);
 
     E.ambientes.forEach(function (amb, i) {
@@ -6469,12 +6467,12 @@ window.HVAC = window.HVAC || {};
     s += '<h2>' + (E.ambientes.length + 5) + '. Serpentina de resfriamento</h2>' + serpentina(E, cj, rs, true) + (passosSerp.length ? tabPassos(passosSerp) : '');
     var nf = E.ambientes.length + 6;
     s += '<h2>' + nf + '. Perfil horário do conjunto</h2><p class="nota">Combinação adotada: ' + mes(rs.mes) + ', dia de ' + rs.nomeDia + '.</p>' + tabelaHoraria(cj, rs) +
-      '<h2>' + (nf + 1) + '. Limites deste documento</h2><p>' + esc(T.DEMO_ENV) + '</p>' +
-      '<ul>' + avisosDe(E, cj).map(function (av) { return '<li>' + esc(av.texto) + '</li>'; }).join('') + '</ul>';
+      '<h2>' + (nf + 1) + '. Limites deste documento</h2><p>' + esc(T.DEMO_ENV) + '</p>';
 
     return '<div class="nao-imprime">' + T.cabeca('Passo 4 de 4', 'Memorial', 'É este o documento que sai em PDF. Ele é montado a partir do que está nas telas, sem redigitação.') +
       '<div class="acoes" style="margin-bottom:16px"><button class="botao prim" data-acao="pdf">Gerar PDF</button><button class="botao" data-acao="salvar">Salvar arquivo do projeto</button>' +
-      '<span class="fraco">No diálogo de impressão, escolha “Salvar como PDF”.</span></div></div>' +
+      '<span class="fraco">No diálogo de impressão, escolha “Salvar como PDF”.</span></div>' +
+      '<div class="cartao"><h2>Antes de emitir</h2>' + pendencias(E, cj) + '</div></div>' +
       '<article class="folha">' + s + '</article>';
   }
 
