@@ -728,7 +728,7 @@ window.HVAC = window.HVAC || {};
 window.HVAC = window.HVAC || {};
 (function (H) {
   'use strict';
-  H.versao = '0.9.6';
+  H.versao = '0.9.7';
   H.dados = H.dados || {};
   H.util = H.util || {};
   H.motor = H.motor || {};
@@ -6300,14 +6300,12 @@ window.HVAC = window.HVAC || {};
     function r(ls) { return Math.round(ls * 3.6); }
     function q(ls) { return f.num(ls * 3.6, 0); }
     // retorno mostrado = insuflamento − ar exterior já arredondados, para a linha fechar a olho (revisor 2026-11-23, item 4)
-    function lin(nome, x, cls) { return '<tr' + (cls || '') + '><td>' + nome + '</td><td class="num">' + f.num(x.sensW, 0) + '</td><td class="num">' + q(x.insLs) + '</td><td class="num">' + q(x.extLs) + '</td><td class="num">' + f.num(r(x.insLs) - r(x.extLs), 0) + '</td><td class="num">' + q(x.qzLs) + '</td></tr>'; }
+    function lin(nome, x, cls) { return '<tr' + (cls || '') + '><td>' + nome + '</td><td class="num">' + f.num(x.sensW, 0) + '</td><td class="num">' + q(x.insLs) + '</td><td class="num">' + q(x.extLs) + '</td><td class="num">' + f.num(r(x.insLs) - r(x.extLs), 0) + '</td></tr>'; }
     return '<p class="suave" style="margin:14px 0 10px">Vazões de ar em ' + mes(sp.mes) + ' · ' + DIA_CURTO[sp.dia] + ' · ' + sp.hora + ' h (combinação do sistema), em m³/h de ar padrão. Ar exterior: ' + f.num(vz.fracExt * 100, 1) + ' % do insuflamento.</p>' +
-      '<div class="tabela-rolo"><table><thead><tr><th>Ambiente</th><th class="num">Calor sensível do ambiente (W)</th><th class="num">Insuflamento (m³/h)</th><th class="num">Ar exterior (m³/h)</th><th class="num">Retorno (m³/h)</th><th class="num">Ar exterior exigido, Qz (m³/h)</th></tr></thead><tbody>' +
+      '<div class="tabela-rolo"><table><thead><tr><th>Ambiente</th><th class="num">Calor sensível do ambiente (W)</th><th class="num">Insuflamento (m³/h)</th><th class="num">Ar exterior (m³/h)</th><th class="num">Retorno (m³/h)</th></tr></thead><tbody>' +
       E.ambientes.map(function (amb, i) { return lin(esc(amb.nome), vz.ambientes[i]); }).join('') +
       lin('Conjunto (serpentina)', c, ' class="total"') + '</tbody></table></div>' +
-      (folha ? '' : '<p class="fraco" style="margin-top:8px">Insuflamento de cada ambiente: o da serpentina, repartido pelo calor sensível do ambiente nesta hora. Ar exterior: a fração de ar exterior da mistura, igual em todos os ambientes; retorno = insuflamento − ar exterior. ' +
-        'Qz é a vazão de ar exterior a ser suprida no ambiente (NBR 16401-3, p. 12). Com recirculação em zonas múltiplas, o ar exterior que chega a um ambiente pela mistura pode ficar abaixo do seu Qz; ' +
-        'o Ev do sistema (Qs = ΣQz ÷ Ev, adotado neste app) cobre essa diferença desde que o ambiente receba insuflamento de pelo menos 1,5 × Qz (NBR 16401-3, p. 15, Eq. 9). ' +
+      (folha ? '' : '<p class="fraco" style="margin-top:8px">Insuflamento de cada ambiente: o da serpentina, repartido pelo calor sensível do ambiente nesta hora. Ar exterior: a parcela de ar exterior que chega ao ambiente na mistura (mesma fração em todos); a soma dos ambientes é a vazão de ar exterior do sistema. Retorno = insuflamento − ar exterior. ' +
         'Valores arredondados ao m³/h: a soma dos ambientes pode diferir do conjunto em poucos m³/h. Para os difusores de cada ambiente vale o calor sensível máximo do próprio ambiente (tabela acima), não o desta hora.</p>');
   }
 
