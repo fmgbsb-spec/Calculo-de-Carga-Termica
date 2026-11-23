@@ -728,7 +728,7 @@ window.HVAC = window.HVAC || {};
 window.HVAC = window.HVAC || {};
 (function (H) {
   'use strict';
-  H.versao = '0.9.5';
+  H.versao = '0.9.6';
   H.dados = H.dados || {};
   H.util = H.util || {};
   H.motor = H.motor || {};
@@ -3627,6 +3627,14 @@ window.HVAC = window.HVAC || {};
                  : '(' + KW(cg.qSensW) + ' ÷ ' + dT(r.dT) + ' + 1,86 × ' + KW(cg.qLatW) + ' ÷ ' + f.num(L, 2) + ') ÷ ' + f.num(cpA, 5),
                KG(r.mIns) + ' = ' + f.num(r.lsPadrao, 0) + ' L/s de ar padrão (' + f.num(r.m3hLocal, 0) + ' m³/h na saída da serpentina, a ' + T(r.ins.t) + ')',
                'ASHRAE Fundamentals 2021, p. 1.10, l. 41; ΔT informado', { id: 'serpMs', num: r.mIns }));
+    // v0.9.6 (Francisco, 2026-11-23): ar exterior e retorno do insuflamento; rateio por ambiente (M.serpentina.vazoes)
+    var vz = sp.vazoes, M3H = function (ls) { return f.num(ls * 3.6, 0) + ' m³/h'; };
+    out.push(p('Ar exterior e retorno no insuflamento', 'x_o = m_o ÷ m_s; m_r = m_s − m_o', KG(r.mExt) + ' ÷ ' + KG(r.mIns) + '; ' + KG(r.mIns) + ' − ' + KG(r.mExt),
+               'x_o = ' + f.num(vz.fracExt * 100, 1) + ' %; ar exterior ' + M3H(vz.conjunto.extLs) + '; retorno ' + M3H(vz.conjunto.retLs) + ' (ar padrão)',
+               'balanço de ar seco da mistura (ASHRAE Fundamentals 2021, p. 1.14)', { id: 'serpXo', num: vz.fracExt }));
+    out.push(p('Vazões de cada ambiente', 'V_i = V_s × q_s,i ÷ Σq_s; V_o,i = x_o × V_i; V_r,i = V_i − V_o,i',
+               'V_s = ' + M3H(vz.conjunto.insLs) + '; Σq_s = ' + W(vz.sensPosW, 1) + (vz.semCarga.length ? ' (só ambientes com q_s > 0)' : '') + '; x_o = ' + f.num(vz.fracExt * 100, 1) + ' %',
+               'tabela "Vazões de ar" no Resumo', 'rateio pelo calor sensível do ambiente na hora (premissa declarada)', { id: 'serpVazAmb', num: vz.conjunto.insLs }));
     out.push(p('Umidade do insuflamento', 'W_s = W_a − q_l ÷ (m_s·L) × 1000 g/kg', G(r.amb.w) + ' − ' + KW(cg.qLatW) + ' ÷ (' + KG(r.mIns) + ' × ' + f.num(L, 2) + ') × 1000 g/kg',
                r.seca ? 'W exigido ' + G(wReq) + '; serpentina seca: W_s = W_e = ' + G(r.ins.w) : 'W_s = ' + G(r.ins.w), EQ30, { id: 'serpWs', num: r.ins.w }));
     out.push(p('Limite de saturação', 'maior ΔT com W_s ≤ W de saturação em t_s',
@@ -3973,7 +3981,22 @@ window.HVAC = window.HVAC || {};
     if (dm.climaMensal.some(function (l) { return String(l.fonte).indexOf('ficha da estação 867150') >= 0; })) {
       add('info', 'dadosMensais', 'Condições externas por mês e τ de céu claro: ficha da estação 867150 do ASHRAE Fundamentals 2025, lida de uma impressão de página web de terceiro; CONFERIR com a folha oficial.', '#/projeto');
     }
-    avisosSerpentina(M.serpentina.paraProjeto(cj, pj)).forEach(function (av) { lista.push(av); });
+    var sp = M.serpentina.paraProjeto(cj, pj);
+    avisosSerpentina(sp).forEach(function (av) { lista.push(av); });
+    // v0.9.6: vazões de cada ambiente (revisor 2026-11-23, itens 1, 2 e 5): sem carga sensível na hora; ar primário abaixo de 1,5 × Qz com recirculação
+    // (NBR 16401-3 5.5.10, Eq. 9, condição do Ev); ar exterior abaixo do Qz sem recirculação entre zonas (zona única, 100 % de ar exterior)
+    if (sp.calculado) {
+      var vz = sp.vazoes, recirc = cj.sistema.tipo === 'Zonas múltiplas com recirculação', m3 = function (ls) { return f.num(ls * 3.6, 0) + ' m³/h'; };
+      vz.ambientes.forEach(function (x, i) {
+        var nome = E.ambientes[i].nome, rotaAmb = '#/ambiente/' + i;
+        if (vz.semCarga.indexOf(i) >= 0)
+          add('aviso', 'vazaoSemCarga', 'Vazões de ar: ' + nome + ' não tem calor sensível positivo na hora do sistema, e o insuflamento rateado sai nulo; o calor negativo dele ainda reduz o insuflamento dos demais. Defina a vazão desse ambiente por outro critério (Qz, renovação).', rotaAmb);
+        else if (recirc && x.insLs < 1.5 * x.qzLs - 1e-9)
+          add('aviso', 'vazaoPrimariaBaixa', 'Vazões de ar: ' + nome + ' recebe ' + m3(x.insLs) + ' de insuflamento, abaixo de 1,5 × Qz = ' + m3(1.5 * x.qzLs) + ', a vazão mínima de ar primário da zona (NBR 16401-3, p. 15, Eq. 9). Sem ela, o Ev adotado não garante o ar exterior desse ambiente.', rotaAmb);
+        else if (!recirc && x.extLs < x.qzLs - 1e-9)
+          add('aviso', 'vazaoArExtBaixo', 'Vazões de ar: ' + nome + ' recebe ' + m3(x.extLs) + ' de ar exterior, abaixo do seu Qz (' + m3(x.qzLs) + '), e sem recirculação entre zonas nada compensa a diferença. Aumente o insuflamento desse ambiente ou o ar exterior do sistema.', rotaAmb);
+      });
+    }
     if (opc && opc.importacao > 0) {
       add('aviso', 'importacao', opc.importacao + (opc.importacao === 1 ? ' campo do arquivo foi substituído' : ' campos do arquivo foram substituídos') + ' na importação. Ver relatório.', '#/inicio');
     }
@@ -4548,11 +4571,29 @@ window.HVAC = window.HVAC || {};
     };
   }
 
+  /* Vazões de ar por ambiente (v0.9.6; Francisco, 2026-11-23), na combinação adotada do sistema, em L/s de ar padrão (m ÷ 1,2 kg/m³):
+     insuflamento = insuflamento da serpentina × parcela do ambiente no calor sensível sem ar exterior da hora (sensAmb, o mesmo q_s da
+     serpentina; valor ≤ 0 conta zero); ar exterior = insuflamento × m_o ÷ m_s (fração da mistura, igual em todos os ambientes);
+     retorno = insuflamento − ar exterior; qzLs = ar exterior mínimo do ambiente (Qz, NBR 16401-3), para conferência.
+     sens e qz na ordem de cj.ambientes; r = processo. As somas dos ambientes fecham com a serpentina. semCarga = índices com sensível ≤ 0.
+     Devolve { fracExt, sensPosW (divisor do rateio: soma só dos positivos), ambientes: [{ sensW, insLs, extLs, retLs, qzLs }],
+       conjunto: { sensW (soma real), insLs, extLs, retLs, qzLs (ΣQz) }, semCarga } */
+  function vazoes(sens, qz, r) {
+    var k = 1000 / H.motor.psicro.RHO_PADRAO, ins = r.mIns * k, ext = r.mExt * k, fx = r.mExt / r.mIns, pos = 0, sensT = 0, sqz = 0, semCarga = [];
+    sens.forEach(function (s, i) { sensT += s; if (s > 0) pos += s; else semCarga.push(i); });
+    qz.forEach(function (q) { sqz += q; });
+    var amb = sens.map(function (s, i) {
+      var vi = s > 0 ? ins * s / pos : 0, ei = vi * fx;
+      return { sensW: s, insLs: vi, extLs: ei, retLs: vi - ei, qzLs: qz[i] };
+    });
+    return { fracExt: fx, sensPosW: pos, ambientes: amb, conjunto: { sensW: sensT, insLs: ins, extLs: ext, retLs: ins - ext, qzLs: sqz }, semCarga: semCarga };
+  }
+
   /* Serpentina do conjunto na combinação adotada da capacidade do sistema (D11): mês, dia e hora de cj.adotado; t_o e W_o da varredura nessa hora;
      soma dos ambientes nessa hora: q_s = calor sensível do ambiente sem ar exterior (sensAmb, com infiltração), q_l = pessoas + infiltração (sinal
      real), q_ret = calor da iluminação ao retorno; ar exterior = Qs do sistema (ΣQz/Ev, L/s de ar padrão) × 1,2 kg/m³ como massa de ar seco (D2).
      cj = M.conjunto(E); op = { dT, qVent } (opcionais). Ambientes com T ou UR diferentes (D12): { calculado: false, motivo: 'estadosDiferentes' }.
-     Devolve { calculado: true, mes, dia, hora, r (= processo), cargas: { qSensW, qLatW, qRetW, mExtMin (kg/s), qsLs (L/s de ar padrão) }, ponte } com a identidade D15 (só vale com latente bruto ≥ 0 em todos os ambientes, no
+     Devolve { calculado: true, mes, dia, hora, r (= processo), cargas: { qSensW, qLatW, qRetW, mExtMin (kg/s), qsLs (L/s de ar padrão) }, ponte, vazoes (v0.9.6) } com a identidade D15 (só vale com latente bruto ≥ 0 em todos os ambientes, no
      acréscimo por Ev, sem serpentina seca e com retorno): m_s(h_e − h_s) = capacidade do sistema + m_o·1,86·t_a·(W_o − W_a) + q_vent.
        ponte = { capSistemaW, extraW, qVentW, qArW, difW, valida, confere (|difW| ≤ 1e-6 W) } */
   function doConjunto(cj, E, op) {
@@ -4576,7 +4617,8 @@ window.HVAC = window.HVAC || {};
     var dif = r.qAr - (ad.cap + extra + qVentW), valida = latOk && !r.seca && !cem && r.mRet > 0;
     return { calculado: true, mes: ad.mes, dia: ad.dia, hora: ad.hora, r: r,
       cargas: { qSensW: qs, qLatW: ql, qRetW: qRet, mExtMin: mExt, qsLs: cj.sistema.qs },
-      ponte: { capSistemaW: ad.cap, extraW: extra, qVentW: qVentW, qArW: r.qAr, difW: dif, valida: valida, confere: valida && Math.abs(dif) <= 1e-6 } };
+      ponte: { capSistemaW: ad.cap, extraW: extra, qVentW: qVentW, qArW: r.qAr, difW: dif, valida: valida, confere: valida && Math.abs(dif) <= 1e-6 },
+      vazoes: vazoes(xs.map(function (y) { return y.sensAmb[ih]; }), cj.ambientes.map(function (a) { return a.adotados.vazaoLs; }), r) };
   }
 
   /* Serpentina para a tela (etapa 4): premissas do projeto (projeto.dTIns e projeto.qVent; vazio = padrão) e erro de entrada sem quebrar a tela
@@ -4589,7 +4631,7 @@ window.HVAC = window.HVAC || {};
     }
   }
 
-  H.motor.serpentina = { DT_PADRAO: DT_PADRAO, SIS_100: SIS_100, mistura: mistura, porKg: porKg, processo: processo, doConjunto: doConjunto, paraProjeto: paraProjeto };
+  H.motor.serpentina = { DT_PADRAO: DT_PADRAO, SIS_100: SIS_100, mistura: mistura, porKg: porKg, processo: processo, vazoes: vazoes, doConjunto: doConjunto, paraProjeto: paraProjeto };
 })(window.HVAC);
 
 </script>
@@ -6133,7 +6175,7 @@ window.HVAC = window.HVAC || {};
         f.num(sr.acr[i], 0) + '</td><td class="num">' + f.num(sr.cap[i], 0) + '</td></tr>';
     }
     return '<div class="tabela-rolo"><table><thead><tr><th class="num">Hora</th><th class="num">Sensível (W)</th><th class="num">Latente líquido (W)</th><th class="num">Carga do ambiente (W)</th>' +
-      '<th class="num">Retorno (W)</th><th class="num">Acréscimo de ar exterior (W)</th><th class="num">Capacidade (W)</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
+      '<th class="num">Calor ao retorno (W)</th><th class="num">Acréscimo de ar exterior (W)</th><th class="num">Capacidade (W)</th></tr></thead><tbody>' + linhas + '</tbody></table></div>';
   }
 
   /* Varredura dos 12 meses: meses = [{ mes, nomeMes, dias: { tbs|tbu|umi: { conta, totalW, horaTotal, capW, horaCap, adotado, ambiente } } }].
@@ -6240,12 +6282,33 @@ window.HVAC = window.HVAC || {};
         '<td class="num">' + f.num(ra.capW - ra.retornoW, 0) + '</td><td class="num">' + f.num(ra.retornoW, 0) + '</td><td class="num">' + f.num(ra.capW, 0) + '</td><td class="num">' + f.num(ra.capTR, 2) + '</td><td class="num">' + f.num(ra.wm2, 0) + '</td></tr>';
     }).join('');
     var pt = rs.ponte;
-    return '<div class="tabela-rolo"><table><thead><tr><th>Ambiente</th><th class="num">Área (m²)</th><th class="num">Combinação</th><th class="num">Carga do ambiente (W)</th><th class="num">Retorno (W)</th><th class="num">Capacidade (W)</th><th class="num">TR (com FS)</th><th class="num">W/m²</th></tr></thead><tbody>' +
+    return '<div class="tabela-rolo"><table><thead><tr><th>Ambiente</th><th class="num">Área (m²)</th><th class="num">Combinação</th><th class="num">Carga do ambiente (W)</th><th class="num">Calor ao retorno (W)</th><th class="num">Capacidade (W)</th><th class="num">TR (com FS)</th><th class="num">W/m²</th></tr></thead><tbody>' +
       linhas + '<tr><td>Acréscimo de ar exterior do sistema (Ev = ' + H.motor.passos.evTxt(rs.sistema.ev) + ')</td><td></td><td></td><td></td><td></td><td class="num">' + f.num(pt.acrescimo, 0) + '</td><td></td><td></td></tr>' +
       '<tr class="total"><td>Conjunto (capacidade do sistema)</td><td class="num">' + f.num(cj.area, 0) + '</td><td class="num">' + mes(rs.mes) + ' · ' + DIA_CURTO[rs.dia] + ' · ' + rs.hora + ' h</td><td class="num">' + f.num(pt.cargaAmbHora, 0) + '</td><td class="num">' + f.num(pt.retornoHora, 0) +
       '</td><td class="num">' + f.num(rs.capSistemaW, 0) + '</td><td class="num">' + f.num(rs.capTR, 2) + '</td><td class="num">' + f.num(rs.wm2, 0) + '</td></tr></tbody></table></div>' +
       (folha ? tabelaSensivelAmbiente(E, cj, true) : '<p class="fraco" style="margin-top:8px">Cada ambiente na sua própria combinação de mês, dia e hora; o conjunto, na do sistema. Soma dos máximos do ano de cada ambiente: ' + f.num(cj.somaPicos, 0) + ' W · soma das cargas dos ambientes na combinação adotada: ' + f.num(cj.somaCombinacao, 0) + ' W · pico simultâneo: ' + f.num(cj.totalPico, 0) + ' W · fator de diversidade (pico simultâneo ÷ soma na combinação adotada): ' + f.num(cj.diversidade, 2) +
-      '. TR e W/m² incluem o fator de segurança de ' + f.num(E.projeto.fs, 0) + ' %.</p>' + tabelaSensivelAmbiente(E, cj));
+      '. TR e W/m² incluem o fator de segurança de ' + f.num(E.projeto.fs, 0) + ' %.</p>' + tabelaSensivelAmbiente(E, cj)) +
+      tabelaVazoes(E, cj, folha);
+  }
+
+  /* Vazões de ar de cada ambiente (v0.9.6; Francisco, 2026-11-23): insuflamento, ar exterior e retorno em m³/h de ar padrão, na combinação adotada
+     do sistema, de M.serpentina.paraProjeto(...).vazoes; a linha do conjunto é a da serpentina. Sem serpentina: no memorial nada; na tela, uma linha */
+  function tabelaVazoes(E, cj, folha) {
+    var sp = M.serpentina.paraProjeto(cj, E.projeto);
+    if (!sp.calculado) return folha ? '' : '<p class="fraco" style="margin-top:14px">Vazões de ar de cada ambiente: dependem da serpentina, que não foi calculada (ver o cartão Serpentina de resfriamento).</p>';
+    var vz = sp.vazoes, c = vz.conjunto;
+    function r(ls) { return Math.round(ls * 3.6); }
+    function q(ls) { return f.num(ls * 3.6, 0); }
+    // retorno mostrado = insuflamento − ar exterior já arredondados, para a linha fechar a olho (revisor 2026-11-23, item 4)
+    function lin(nome, x, cls) { return '<tr' + (cls || '') + '><td>' + nome + '</td><td class="num">' + f.num(x.sensW, 0) + '</td><td class="num">' + q(x.insLs) + '</td><td class="num">' + q(x.extLs) + '</td><td class="num">' + f.num(r(x.insLs) - r(x.extLs), 0) + '</td><td class="num">' + q(x.qzLs) + '</td></tr>'; }
+    return '<p class="suave" style="margin:14px 0 10px">Vazões de ar em ' + mes(sp.mes) + ' · ' + DIA_CURTO[sp.dia] + ' · ' + sp.hora + ' h (combinação do sistema), em m³/h de ar padrão. Ar exterior: ' + f.num(vz.fracExt * 100, 1) + ' % do insuflamento.</p>' +
+      '<div class="tabela-rolo"><table><thead><tr><th>Ambiente</th><th class="num">Calor sensível do ambiente (W)</th><th class="num">Insuflamento (m³/h)</th><th class="num">Ar exterior (m³/h)</th><th class="num">Retorno (m³/h)</th><th class="num">Ar exterior exigido, Qz (m³/h)</th></tr></thead><tbody>' +
+      E.ambientes.map(function (amb, i) { return lin(esc(amb.nome), vz.ambientes[i]); }).join('') +
+      lin('Conjunto (serpentina)', c, ' class="total"') + '</tbody></table></div>' +
+      (folha ? '' : '<p class="fraco" style="margin-top:8px">Insuflamento de cada ambiente: o da serpentina, repartido pelo calor sensível do ambiente nesta hora. Ar exterior: a fração de ar exterior da mistura, igual em todos os ambientes; retorno = insuflamento − ar exterior. ' +
+        'Qz é a vazão de ar exterior a ser suprida no ambiente (NBR 16401-3, p. 12). Com recirculação em zonas múltiplas, o ar exterior que chega a um ambiente pela mistura pode ficar abaixo do seu Qz; ' +
+        'o Ev do sistema (Qs = ΣQz ÷ Ev, adotado neste app) cobre essa diferença desde que o ambiente receba insuflamento de pelo menos 1,5 × Qz (NBR 16401-3, p. 15, Eq. 9). ' +
+        'Valores arredondados ao m³/h: a soma dos ambientes pode diferir do conjunto em poucos m³/h. Para os difusores de cada ambiente vale o calor sensível máximo do próprio ambiente (tabela acima), não o desta hora.</p>');
   }
 
   /* Calor sensível de cada ambiente, sem ar exterior (o número gravado no bloco resultados do arquivo, formato 3), na combinação em que ocorre.
@@ -6405,7 +6468,8 @@ window.HVAC = window.HVAC || {};
       '<li>Latente do ambiente = máx(0; pessoas + ar exterior + infiltração).</li>' +
       '<li>Camadas brasileiras (código B): NBR 15220-2 e -3.</li>' +
       '<li>Capacidade sem o calor de ventiladores, dutos e bombas (NBR 16401-1, p. 15, l. 34).</li>' +
-      '<li>Serpentina: ΔT de insuflamento ' + dtRot(dTSerp, 1) + ' °C; calor do ventilador e dos dutos ' + f.num(qVentSerp, 0) + ' W.</li></ol>';
+      '<li>Serpentina: ΔT de insuflamento ' + dtRot(dTSerp, 1) + ' °C; calor do ventilador e dos dutos ' + f.num(qVentSerp, 0) + ' W.</li>' +
+      '<li>Vazões de cada ambiente: insuflamento da serpentina repartido pelo calor sensível do ambiente na hora do sistema; ar exterior na fração da mistura; retorno = insuflamento − ar exterior; ar padrão, 1,2 kg/m³.</li></ol>';
 
     s += '<h2>3. Resumo</h2>' + tabelaPorAmbiente(E, cj, rs, true).replace(/ class="clicavel" data-acao="ir" data-rota="[^"]*"/g, '') +
       h3('Conjunto') + '<table><tbody>' +
