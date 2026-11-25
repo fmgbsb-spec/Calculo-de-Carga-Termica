@@ -30,7 +30,7 @@
 <title>Carga térmica</title>
 <!-- Plataforma comum (_plataforma-hvac): tokens, base, componentes e folha do memorial. O build embute tudo no HTML único. -->
 <style>
-/* ==== plataforma v0.6.1: css/base.css ==== */
+/* ==== plataforma v0.7.0: css/base.css ==== */
 /* ---- importado: fontes.css ---- */
 /* Fontes embutidas (gerado por _plataforma-hvac\codigo\ferramentas\gera_fontes.py; não editar à mão).
    Arquivos woff2 do Google Fonts, subconjunto latin, sem alteração; letras fora dele usam a fonte seguinte da lista.
@@ -521,7 +521,7 @@ button.kpi-c:hover { border-color: var(--prim); }
 
 </style>
 <style>
-/* ==== plataforma v0.6.1: css/impressao.css ==== */
+/* ==== plataforma v0.7.0: css/impressao.css ==== */
 /* Plataforma HVAC: memorial em formato de folha e regras de impressão (o PDF sai pela impressão do navegador). */
 /* v0.5.0: a folha é papel e não flutua (sem sombra, só a borda); dentro dela ficam as fontes e os pesos da v0.4.1, para o PDF
    sair igual (a tela troca para IBM Plex; o memorial muda de fonte só numa etapa própria, com o Francisco) */
@@ -677,7 +677,7 @@ button.kpi-c:hover { border-color: var(--prim); }
 <body>
 <!-- Plataforma: página (topo, trilha, área da tela, faixa), namespace e formatação -->
 <script>
-/* ==== plataforma v0.6.1: js/interface/pagina.js ==== */
+/* ==== plataforma v0.7.0: js/interface/pagina.js ==== */
 /* Plataforma HVAC. Página comum: topo (marca, modo aprendizado, tema, comandos), trilha, área da tela, faixa de resultado,
    camada sobre a tela, campo de arquivo e captura de erro de JavaScript. Desde a v0.4.0, também o botão Menu, a barra de
    passos e o balão de dica do celular: nascem ocultos (base.css) e só aparecem em tela estreita.
@@ -686,7 +686,7 @@ button.kpi-c:hover { border-color: var(--prim); }
 window.HVAC = window.HVAC || {};
 (function (H) {
   'use strict';
-  H.plataforma = { versao: '0.6.1' };   // o build do app grava aqui a versão de _plataforma-hvac\codigo\VERSAO.txt
+  H.plataforma = { versao: '0.7.0' };   // o build do app grava aqui a versão de _plataforma-hvac\codigo\VERSAO.txt
 
   /* Erro de JavaScript fica visível na página (e aparece no teste automático) */
   window.onerror = function (msg, arq, linha) {
@@ -723,12 +723,12 @@ window.HVAC = window.HVAC || {};
 
 </script>
 <script>
-/* ==== plataforma v0.6.1: js/nucleo.js ==== */
+/* ==== plataforma v0.7.0: js/nucleo.js ==== */
 /* Namespace único do app. Módulos: dados (tabelas), util, motor (cálculo, sem DOM), ui (tela). */
 window.HVAC = window.HVAC || {};
 (function (H) {
   'use strict';
-  H.versao = '0.9.7';
+  H.versao = '0.10.0';
   H.dados = H.dados || {};
   H.util = H.util || {};
   H.motor = H.motor || {};
@@ -737,7 +737,7 @@ window.HVAC = window.HVAC || {};
 
 </script>
 <script>
-/* ==== plataforma v0.6.1: js/util/formatacao.js ==== */
+/* ==== plataforma v0.7.0: js/util/formatacao.js ==== */
 /* Formatação numérica (padrão brasileiro: vírgula decimal) e utilidades de texto. */
 (function (H) {
   'use strict';
@@ -1957,7 +1957,7 @@ window.HVAC = window.HVAC || {};
 
 </script>
 <script>
-/* ==== plataforma v0.6.1: js/motor/psicrometria.js ==== */
+/* ==== plataforma v0.7.0: js/motor/psicrometria.js ==== */
 /* Psicrometria do ar úmido como mistura de gases perfeitos (ASHRAE Handbook Fundamentals 2021 SI, cap. 1, p. 1.1 a 1.11). Motor comum
    dos apps HVAC, sem DOM; carregar depois do nucleo.js. Unidades: t em °C, p em kPa, W em kg/kg de ar seco, h em kJ/kg de ar seco,
    v em m³/kg de ar seco, ρ em kg/m³, UR e μ como fração (0 a 1).
@@ -4637,7 +4637,7 @@ window.HVAC = window.HVAC || {};
 </script>
 <!-- Plataforma: componentes e casca -->
 <script>
-/* ==== plataforma v0.6.1: js/interface/componentes.js ==== */
+/* ==== plataforma v0.7.0: js/interface/componentes.js ==== */
 /* Plataforma HVAC. Componentes do guia de interface: campo com estado, selos, valor calculado, seletor, segmentado, passos,
    cabeçalho de tela, indicador, bloco recolhível, barras, tabela de passos e, desde a v0.4.0, a lista de cartões do celular.
    Só montam HTML; não conhecem app nem motor.
@@ -4799,7 +4799,7 @@ window.HVAC = window.HVAC || {};
 
 </script>
 <script>
-/* ==== plataforma v0.6.1: js/interface/casca.js ==== */
+/* ==== plataforma v0.7.0: js/interface/casca.js ==== */
 /* Plataforma HVAC. Casca comum dos apps: estado, armazenamento, rotas, trilha, faixa de resultado, gaveta, janela, paleta de comandos,
    tema, modo aprendizado, arquivo de projeto com relatório de importação e impressão do memorial; desde a v0.4.0, o celular
    (Menu, barra de passos, Voltar, dica por toque, tabelas que rolam, memorial em escala, teclado), só com a tela estreita.
@@ -5093,11 +5093,28 @@ window.HVAC = window.HVAC || {};
   }
   function abrirPaleta() { U.sobre = { tipo: 'paleta', busca: '', sel: 0 }; desenharSobre(); document.getElementById('paleta-busca').focus(); }
 
-  function gerarPdf() {
+  /* Gerar PDF (v0.7.0): com A.faltaPreencher(E, R) → [{ onde, texto, rota }] não vazio, abre a janela "Falta preencher" (lista,
+     "Voltar e preencher", "Gerar assim mesmo"); sem o item no manifesto, ou com a lista vazia, imprime direto, como antes. */
+  function imprimir(depois) {   // depois: espera o desenho que fecha a janela
     var r = rotaQueImprime();
     if (!r) return;
     if (U.tela !== r) { location.hash = '#/' + r; setTimeout(function () { window.print(); }, 150); }
+    else if (depois) setTimeout(function () { window.print(); }, 0);
     else window.print();
+  }
+  function htmlFaltaPreencher(L) {
+    return '<h2>Falta preencher</h2><ul class="falta-preencher" style="margin:10px 0 0;padding-left:20px">' + L.map(function (x, i) {
+        return '<li style="margin:4px 0">' + (x.onde ? esc(x.onde) + ': ' : '') + esc(x.texto) + '.' +
+          (x.rota ? ' <a href="' + esc(x.rota) + '" data-acao="pdf-ir" data-i="' + i + '">Abrir</a>' : '') + '</li>';
+      }).join('') + '</ul>' +
+      '<div class="acoes" style="margin-top:14px"><button type="button" class="botao prim" data-acao="fechar">Voltar e preencher</button>' +
+      '<button type="button" class="botao" data-acao="pdf-assim">Gerar assim mesmo</button></div>';
+  }
+  function gerarPdf() {
+    if (!rotaQueImprime()) return;
+    var L = A.faltaPreencher ? A.faltaPreencher(E, A.calcular ? A.calcular(E) : null) || [] : [];
+    if (L.length) { U.sobre = { tipo: 'janela', html: htmlFaltaPreencher(L), falta: L }; return; }
+    imprimir();
   }
   /* Texto do arquivo de projeto como é salvo: o projeto, o envelope (formato, versaoFormato, versaoApp e, logo depois, versaoPlataforma)
      e os blocos que A.arquivo.aoSalvar(E, R) devolver (ex.: { resultados: {...} }). Os blocos entram só nesta cópia: E não os recebe.
@@ -5212,6 +5229,12 @@ window.HVAC = window.HVAC || {};
     paleta: function () { U.sobre = { tipo: 'paleta', busca: '', sel: 0 }; return 'paleta-busca'; },
     comando: function (el) { var c = comandosFiltrados()[+el.getAttribute('data-i')]; U.sobre = null; if (c) c.fn(); },
     pdf: gerarPdf,
+    'pdf-assim': function () { U.sobre = null; imprimir(true); },                     // v0.7.0: janela "Falta preencher"
+    'pdf-ir': function (el) {
+      var x = U.sobre && U.sobre.falta ? U.sobre.falta[+el.getAttribute('data-i')] : null;
+      U.sobre = null;
+      if (x && x.rota && location.hash !== x.rota) location.hash = x.rota;
+    },
     salvar: salvarArquivo,
     'abrir-arquivo': function () { document.getElementById('arquivo').click(); },
     ajuda: function () { if (A.ajuda && A.ajuda.length) U.sobre = { tipo: 'janela', html: htmlAjuda() }; },
@@ -5493,6 +5516,9 @@ window.HVAC = window.HVAC || {};
   var FACES = { N: 'Norte', L: 'Leste', S: 'Sul', O: 'Oeste', C: 'Cobertura', P: 'Piso' };
   var FONTE_INTERNA = '24 °C e 50 %: par adotado como padrão do app, editável. A NBR 16401-1, p. 12, l. 6 remete à faixa de conforto da NBR 16401-2, que não fixa esse par: o item 6.3 (NBR 16401-2, p. 12, l. 22) pede a verificação do conforto, que depende de vestimenta, atividade e velocidade do ar; com velocidade do ar menor que 0,20 m/s, o 6.3.1.2 (NBR 16401-2, p. 13, l. 7) pede PMV entre −0,5 e +0,5.';
   var DEMO_ENV = 'Protótipo: cálculo pelo método CTS/RTS (ASHRAE Fundamentals 2021) com dados da NBR 16401-1 e 16401-3 e clima de Brasília da ficha ASHRAE Fundamentals 2025, conferido contra a planilha Carga_Termica_Brasilia v1.1.0. Só resfriamento, Brasília. Piso em contato com o exterior não é calculado. O sombreamento externo do vidro (beiral e brise) existe só no app: a planilha não o calcula. Outras cidades ainda não existem.';
+  // nota fixa da capacidade (estava no "Antes de emitir" da tela Memorial até a 0.9.7; passo Projeto desde a 0.10.0)
+  var NOTA_CAP = 'A capacidade do sistema não inclui o calor dos ventiladores, o ganho de calor nos dutos nem o calor das bombas (NBR 16401-1, p. 15, l. 34; NBR 16401-1, p. 16, l. 31): acrescente-os na seleção dos equipamentos. ' +
+    'O calor do ventilador e dos dutos pode ser informado nas premissas da serpentina (passo Projeto, Sistema de ar); a capacidade do sistema continua sem ele.';
   var PADRAO_FACE = H.dados.exemplo.ambiente().faces.N;
   var M0 = H.motor, FM = M0.formato;
   var FONTE_RETORNO = 'ASHRAE Fundamentals 2021, p. 18.6, l. 1: fração do calor da luminária que fica no espaço; o restante vai ao retorno (com forro plenum) e entra na capacidade do sistema, não na carga do ambiente.';
@@ -5626,8 +5652,13 @@ window.HVAC = window.HVAC || {};
     })();
     return cabeca('Passo 1 de 4', 'Projeto', 'Dados que valem para todos os ambientes. O que vem da norma já está preenchido.') +
       C.aprender('As condições externas de projeto não são a temperatura mais alta já registrada: são valores que só são superados em uma pequena fração das horas do ano (0,4 %, por exemplo, são cerca de 35 h por ano). Projetar para o extremo absoluto superdimensiona o sistema.') +
-      (function () { var av = H.motor.avisos(E, cj).filter(function (x) { return x.codigo === 'dSistema' || x.codigo === 'dadosMensais'; });
-        return av.length ? '<div class="aviso">' + av.map(function (x) { return esc(x.texto); }).join('<br>') + '</div>' : ''; })() +
+      // 0.10.0 (pedido do Francisco de 25/11): sai o "Antes de emitir" da tela Memorial; todos os avisos do cálculo e a nota da
+      // capacidade ficam aqui (antes, só dSistema e dadosMensais). Resultados e PDF seguem sem avisos.
+      (function () {
+        var im = H.ui.U && H.ui.U.importacao, M = H.motor;
+        var av = M.avisos(E, cj, { importacao: im ? M.formato.contar(im.relatorio, 'substituido') : 0 });
+        return '<div class="aviso">' + av.map(function (x) { return esc(x.texto) + (x.rota ? ' <a href="' + x.rota + '">Abrir</a>' : ''); }).concat(NOTA_CAP).join('<br>') + '</div>';
+      })() +
       '<div class="cartao"><h2>Identificação</h2><div class="grade g2">' +
         C.texto({ id: 'p-nome', caminho: 'projeto.nome', rotulo: 'Nome do projeto', valor: p.nome }) +
         C.texto({ id: 'p-cliente', caminho: 'projeto.cliente', rotulo: 'Cliente', valor: p.cliente, dica: 'opcional' }) +
@@ -6118,7 +6149,6 @@ window.HVAC = window.HVAC || {};
   var f = H.util.fmt, esc = f.esc, C = H.ui.c, T = H.ui.telas, M = H.motor;
   var DIA_CURTO = { tbs: 'tbs máx.', tbu: 'tbu máx.', umi: 'umidade máx.' };
   var BTU_POR_W = 3.41214;
-  var NOTA_VENT = 'O calor do ventilador e dos dutos pode ser informado nas premissas da serpentina (passo Projeto, Sistema de ar); a capacidade do sistema continua sem ele.';
 
   function mes(n) { return M.MESES[n - 1]; }
   function numBtn(chave, texto) { return '<button type="button" class="valor-calc num" data-acao="conta" data-chave="' + chave + '" title="Abrir a conta">' + texto + '</button>'; }
@@ -6230,33 +6260,16 @@ window.HVAC = window.HVAC || {};
     return s + '</div>';
   }
 
-  // Avisos do núcleo (M.avisos) com o número de campos substituídos na última importação, que só a tela conhece
-  function avisosDe(E, cj) {
-    var im = H.ui.U && H.ui.U.importacao;
-    return M.avisos(E, cj, { importacao: im ? M.formato.contar(im.relatorio, 'substituido') : 0 });
-  }
-
-  function pendencias(E, cj) {
-    var itens = [], nPadrao = 0;
-    E.ambientes.forEach(function (amb) {
-      if (amb.pessoas.n === null) nPadrao++;
-      if (amb.ilum.dpi === null) nPadrao++;
-      if (amb.ar.fp === null) nPadrao++;
-      if (amb.ar.fa === null) nPadrao++;
+  /* 0.10.0 (plataforma 0.7.0, pedido do Francisco de 25/11): sai o cartão "Antes de emitir" da tela Memorial; ao gerar o PDF, a casca
+     abre a janela "Falta preencher" com os campos da Identificação em branco. Os avisos do cálculo e a nota da capacidade foram para o
+     passo Projeto (telas.js); os da envoltória seguem na face do ambiente. */
+  var IDENT = [['nome', 'Nome do projeto'], ['cliente', 'Cliente'], ['responsavel', 'Responsável técnico'], ['registro', 'Registro profissional'], ['revisao', 'Revisão']];
+  function faltaPreencher(E) {
+    var p = E.projeto || {}, L = [];
+    IDENT.forEach(function (c) {
+      if (String(p[c[0]] === null || p[c[0]] === undefined ? '' : p[c[0]]).trim() === '') L.push({ onde: 'Projeto', texto: c[1] + ' em branco', rota: '#/projeto' });
     });
-    if (!E.projeto.responsavel) itens.push(['!', 'Falta o responsável técnico. <a href="#/projeto">Preencher no passo Projeto</a>']);
-    if (nPadrao) itens.push(['i', nPadrao + (nPadrao === 1 ? ' valor está' : ' valores estão') + ' no padrão da norma. Confirme se valem para este projeto; o memorial indica quais são.']);
-    E.ambientes.forEach(function (amb, i) {
-      M.envoltoria(amb).avisos.forEach(function (av) {
-        itens.push(['!', esc(amb.nome) + ': ' + esc(av.texto) + ' <a href="#/ambiente/' + i + '?bloco=env&face=' + av.face + '">Abrir a face</a>']);
-      });
-    });
-    avisosDe(E, cj).forEach(function (av) {
-      itens.push([av.nivel === 'aviso' ? '!' : 'i', esc(av.texto) + (av.rota ? ' <a href="' + av.rota + '">Abrir</a>' : '')]);
-    });
-    itens.push(['!', 'A capacidade do sistema não inclui o calor dos ventiladores, o ganho de calor nos dutos nem o calor das bombas (NBR 16401-1, p. 15, l. 34; NBR 16401-1, p. 16, l. 31): acrescente-os na seleção dos equipamentos. ' + NOTA_VENT]);
-    itens.push(['!', esc(T.DEMO_ENV)]);
-    return '<ul class="pend">' + itens.map(function (x) { return '<li><span class="selo ' + (x[0] === '!' ? 'alterado' : 'norma') + '" aria-hidden="true">' + x[0] + '</span><span>' + x[1] + '</span></li>'; }).join('') + '</ul>';
+    return L;
   }
 
   // Quadro "Do ambiente ao sistema": uma linha por parcela, cada número abre a conta
@@ -6527,13 +6540,13 @@ window.HVAC = window.HVAC || {};
 
     return '<div class="nao-imprime">' + T.cabeca('Passo 4 de 4', 'Memorial', 'É este o documento que sai em PDF. Ele é montado a partir do que está nas telas, sem redigitação.') +
       '<div class="acoes" style="margin-bottom:16px"><button class="botao prim" data-acao="pdf">Gerar PDF</button><button class="botao" data-acao="salvar">Salvar arquivo do projeto</button>' +
-      '<span class="fraco">No diálogo de impressão, escolha “Salvar como PDF”.</span></div>' +
-      '<div class="cartao"><h2>Antes de emitir</h2>' + pendencias(E, cj) + '</div></div>' +
+      '<span class="fraco">No diálogo de impressão, escolha “Salvar como PDF”.</span></div></div>' +
       '<article class="folha">' + s + '</article>';
   }
 
   H.ui.telas.resultados = resultados;
   H.ui.telas.memorial = memorial;
+  H.ui.telas.faltaPreencher = faltaPreencher;
   H.ui.telas.composicao = composicao;
 })(window.HVAC);
 
@@ -6635,6 +6648,8 @@ window.HVAC = window.HVAC || {};
       { r: 'resultados', t: 'Resultados', s: function (E, R) { return f.num(R.rs.capTR, 2) + ' TR'; } },
       { r: 'memorial', t: 'Memorial', s: function (E) { return 'revisão ' + E.projeto.revisao; } }
     ],
+    // plataforma 0.7.0: o que falta preencher abre a janela da casca ao gerar o PDF (resultados.js)
+    faltaPreencher: function (E) { return H.ui.telas.faltaPreencher(E); },
 
     calcular: function (E) { var cj = H.motor.conjunto(E); return { cj: cj, rs: H.motor.resumo(cj, E.projeto) }; },
     medida: function (E) { return H.motor.conjunto(E).adotado.cap; },     // a faixa mostra a variação da capacidade
