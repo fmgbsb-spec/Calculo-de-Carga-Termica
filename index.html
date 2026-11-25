@@ -30,7 +30,7 @@
 <title>Carga térmica</title>
 <!-- Plataforma comum (_plataforma-hvac): tokens, base, componentes e folha do memorial. O build embute tudo no HTML único. -->
 <style>
-/* ==== plataforma v0.7.0: css/base.css ==== */
+/* ==== plataforma v0.8.0: css/base.css ==== */
 /* ---- importado: fontes.css ---- */
 /* Fontes embutidas (gerado por _plataforma-hvac\codigo\ferramentas\gera_fontes.py; não editar à mão).
    Arquivos woff2 do Google Fonts, subconjunto latin, sem alteração; letras fora dele usam a fonte seguinte da lista.
@@ -521,7 +521,7 @@ button.kpi-c:hover { border-color: var(--prim); }
 
 </style>
 <style>
-/* ==== plataforma v0.7.0: css/impressao.css ==== */
+/* ==== plataforma v0.8.0: css/impressao.css ==== */
 /* Plataforma HVAC: memorial em formato de folha e regras de impressão (o PDF sai pela impressão do navegador). */
 /* v0.5.0: a folha é papel e não flutua (sem sombra, só a borda); dentro dela ficam as fontes e os pesos da v0.4.1, para o PDF
    sair igual (a tela troca para IBM Plex; o memorial muda de fonte só numa etapa própria, com o Francisco) */
@@ -677,7 +677,7 @@ button.kpi-c:hover { border-color: var(--prim); }
 <body>
 <!-- Plataforma: página (topo, trilha, área da tela, faixa), namespace e formatação -->
 <script>
-/* ==== plataforma v0.7.0: js/interface/pagina.js ==== */
+/* ==== plataforma v0.8.0: js/interface/pagina.js ==== */
 /* Plataforma HVAC. Página comum: topo (marca, modo aprendizado, tema, comandos), trilha, área da tela, faixa de resultado,
    camada sobre a tela, campo de arquivo e captura de erro de JavaScript. Desde a v0.4.0, também o botão Menu, a barra de
    passos e o balão de dica do celular: nascem ocultos (base.css) e só aparecem em tela estreita.
@@ -686,7 +686,7 @@ button.kpi-c:hover { border-color: var(--prim); }
 window.HVAC = window.HVAC || {};
 (function (H) {
   'use strict';
-  H.plataforma = { versao: '0.7.0' };   // o build do app grava aqui a versão de _plataforma-hvac\codigo\VERSAO.txt
+  H.plataforma = { versao: '0.8.0' };   // o build do app grava aqui a versão de _plataforma-hvac\codigo\VERSAO.txt
 
   /* Erro de JavaScript fica visível na página (e aparece no teste automático) */
   window.onerror = function (msg, arq, linha) {
@@ -723,12 +723,12 @@ window.HVAC = window.HVAC || {};
 
 </script>
 <script>
-/* ==== plataforma v0.7.0: js/nucleo.js ==== */
+/* ==== plataforma v0.8.0: js/nucleo.js ==== */
 /* Namespace único do app. Módulos: dados (tabelas), util, motor (cálculo, sem DOM), ui (tela). */
 window.HVAC = window.HVAC || {};
 (function (H) {
   'use strict';
-  H.versao = '0.10.0';
+  H.versao = '0.11.0';
   H.dados = H.dados || {};
   H.util = H.util || {};
   H.motor = H.motor || {};
@@ -737,7 +737,7 @@ window.HVAC = window.HVAC || {};
 
 </script>
 <script>
-/* ==== plataforma v0.7.0: js/util/formatacao.js ==== */
+/* ==== plataforma v0.8.0: js/util/formatacao.js ==== */
 /* Formatação numérica (padrão brasileiro: vírgula decimal) e utilidades de texto. */
 (function (H) {
   'use strict';
@@ -1957,7 +1957,7 @@ window.HVAC = window.HVAC || {};
 
 </script>
 <script>
-/* ==== plataforma v0.7.0: js/motor/psicrometria.js ==== */
+/* ==== plataforma v0.8.0: js/motor/psicrometria.js ==== */
 /* Psicrometria do ar úmido como mistura de gases perfeitos (ASHRAE Handbook Fundamentals 2021 SI, cap. 1, p. 1.1 a 1.11). Motor comum
    dos apps HVAC, sem DOM; carregar depois do nucleo.js. Unidades: t em °C, p em kPa, W em kg/kg de ar seco, h em kJ/kg de ar seco,
    v em m³/kg de ar seco, ρ em kg/m³, UR e μ como fração (0 a 1).
@@ -3456,6 +3456,21 @@ window.HVAC = window.HVAC || {};
       segunda: { hora: r.hora2, totalW: r.total2 } };
   }
 
+  /* Composição da carga do ambiente (v0.11.0, memorial resumido): na combinação adotada (a de maior capacidade) e na hora da capacidade,
+     a mesma da coluna "Carga do ambiente" do resumo (capPico − retPico = total[horaCap]). Parcelas que fecham com o total: o latente de
+     pessoas, ar exterior e infiltração só entra quando o latente bruto do ambiente é positivo (mesma regra de lerHora). Só lê o resultado. */
+  function composicaoAmbiente(r) {
+    var ip = r.adotado.horaCap - 1, p = r.perfil, contaLat = r.latBruto[ip] > 0;
+    function v(k) { return p[k][ip]; }
+    return { mes: r.adotado.mes, dia: r.adotado.dia, nomeDia: NOME_DIA[r.adotado.dia], hora: r.adotado.horaCap,
+      opaca: v('opaca'), vidros: v('vidroCond') + v('vidroSolar'),
+      pessoas: v('pessoasSens') + (contaLat ? v('pessoasLat') : 0),
+      iluminacao: v('iluminacao'), equipamentos: v('equipamentos'),
+      arExterior: v('arExtSens') + (contaLat ? v('arExtLat') : 0),
+      infiltracao: v('infSens') + (contaLat ? v('infLat') : 0),
+      sensivel: r.sens[ip], latente: r.lat[ip], total: r.total[ip] };
+  }
+
   // Carga da envoltória por face do croqui, na hora de pico do resultado
   function cargaPorFace(res) {
     var faces = { N: 0, L: 0, S: 0, O: 0, C: 0, P: 0 }, ip = res.horaPico - 1;
@@ -3491,6 +3506,7 @@ window.HVAC = window.HVAC || {};
   M.itensNoPico = itensNoPico;
   M.resumo = resumo;
   M.resumoAmbiente = resumoAmbiente;
+  M.composicaoAmbiente = composicaoAmbiente;
   M.MESES = MESES;
   M.SOMB_FABRICANTE = SOMB_FABRICANTE;
   M.numeroFlex = numeroFlex;
@@ -4637,7 +4653,7 @@ window.HVAC = window.HVAC || {};
 </script>
 <!-- Plataforma: componentes e casca -->
 <script>
-/* ==== plataforma v0.7.0: js/interface/componentes.js ==== */
+/* ==== plataforma v0.8.0: js/interface/componentes.js ==== */
 /* Plataforma HVAC. Componentes do guia de interface: campo com estado, selos, valor calculado, seletor, segmentado, passos,
    cabeçalho de tela, indicador, bloco recolhível, barras, tabela de passos e, desde a v0.4.0, a lista de cartões do celular.
    Só montam HTML; não conhecem app nem motor.
@@ -4799,7 +4815,7 @@ window.HVAC = window.HVAC || {};
 
 </script>
 <script>
-/* ==== plataforma v0.7.0: js/interface/casca.js ==== */
+/* ==== plataforma v0.8.0: js/interface/casca.js ==== */
 /* Plataforma HVAC. Casca comum dos apps: estado, armazenamento, rotas, trilha, faixa de resultado, gaveta, janela, paleta de comandos,
    tema, modo aprendizado, arquivo de projeto com relatório de importação e impressão do memorial; desde a v0.4.0, o celular
    (Menu, barra de passos, Voltar, dica por toque, tabelas que rolam, memorial em escala, teclado), só com a tela estreita.
@@ -4813,8 +4829,10 @@ window.HVAC = window.HVAC || {};
   var A = null;                               // manifesto do app (H.app)
   var E = null;                               // projeto (o que vai para o arquivo)
   var U = H.ui.U = {                          // estado da tela (não vai para o arquivo); o app acrescenta os seus campos em H.app.estado
-    tela: 'inicio', temIndice: false, aberto: {}, aprender: false, tema: 'claro', erros: {}, delta: 0, sobre: null, paleta: null
+    tela: 'inicio', temIndice: false, aberto: {}, aprender: false, tema: 'claro', erros: {}, delta: 0, sobre: null, paleta: null,
+    memorial: ''                              // v0.8.0: 'resumido' enquanto a folha resumida é impressa (ou com ?memorial=resumido); '' = completo
   };
+  var voltarAoCompleto = false;               // v0.8.0: depois de imprimir o resumido pela janela, a tela volta ao completo
   var clicarDepois = null;                    // seletor do parâmetro de teste ?clicar=, à espera do próximo desenho
   var digitarDepois = null;                   // "<id>:<valor>" do parâmetro de teste ?digitar=, à espera do próximo desenho
   var despejar = false;                       // parâmetro de teste ?despejar=1: o texto do arquivo vai para a página a cada desenho
@@ -4938,7 +4956,8 @@ window.HVAC = window.HVAC || {};
   }
 
   // ------------------------------------------------------------ rotas: #/tela/indice?chave=valor
-  /* Parâmetros de endereço da casca (usados em testes e capturas): importar, bloco, tema, aprender, conta, clicar, digitar, despejar.
+  /* Parâmetros de endereço da casca (usados em testes e capturas): importar, bloco, tema, aprender, conta, clicar, digitar, despejar,
+     memorial (v0.8.0: "resumido" mostra a folha resumida, para conferir e gerar o PDF por --print-to-pdf).
      Os do app ficam em A.parametros = { nome: function (valor, U) }; se o app declara "clicar", "digitar" ou "despejar", vale o dele
      e a casca não age nesse parâmetro. */
   function lerRota() {
@@ -4964,6 +4983,7 @@ window.HVAC = window.HVAC || {};
         try { digitarDepois = decodeURIComponent(kv[1]); } catch (e) { digitarDepois = null; }
       }
       if (kv[0] === 'despejar' && !tem(A.parametros, 'despejar')) despejar = kv[1] === '1';
+      if (kv[0] === 'memorial' && !tem(A.parametros, 'memorial')) U.memorial = kv[1] === 'resumido' ? 'resumido' : '';
     });
   }
   // ?digitar=<id do campo>:<valor>: escreve o valor no elemento e dispara o evento de alteração, que é o caminho de quem digita na tela;
@@ -4980,11 +5000,15 @@ window.HVAC = window.HVAC || {};
     if (!pre) { pre = document.createElement('pre'); pre.id = 'despejo'; pre.hidden = true; document.body.appendChild(pre); }
     pre.textContent = textoArquivo();
   }
-  // ?clicar=<seletor CSS>: clica no primeiro elemento que casa com o seletor; seletor inválido ou elemento ausente são ignorados
+  // ?clicar=<seletor CSS>: clica no primeiro elemento que casa com o seletor; seletor inválido ou elemento ausente são ignorados.
+  // v0.8.0: "<seletor 1>||<seletor 2>" clica no segundo depois do desenho que o primeiro clique provocou (janela que abre outra)
   function clicar(valor) {
-    var el;
-    try { el = document.querySelector(decodeURIComponent(valor)); } catch (e) { el = null; }
-    if (el) el.click();
+    var el, txt, i;
+    try { txt = decodeURIComponent(valor); } catch (e) { return; }
+    i = txt.indexOf('||');
+    if (i >= 0) { clicarDepois = encodeURIComponent(txt.slice(i + 2)); txt = txt.slice(0, i); }
+    try { el = document.querySelector(txt); } catch (e) { el = null; }
+    if (el) el.click(); else clicarDepois = null;
   }
 
   // ------------------------------------------------------------ desenho
@@ -5024,7 +5048,8 @@ window.HVAC = window.HVAC || {};
     document.getElementById('faixa').className = hf ? 'faixa' : 'oculto';
     document.getElementById('b-aprender').setAttribute('aria-pressed', U.aprender);
     document.getElementById('b-tema').textContent = U.tema === 'escuro' ? 'Tema claro' : 'Tema escuro';
-    document.title = A.titulo ? A.titulo(E) : ((E.projeto && E.projeto.nome || 'Projeto') + ' · ' + A.nome);
+    document.title = (A.titulo ? A.titulo(E) : ((E.projeto && E.projeto.nome || 'Projeto') + ' · ' + A.nome)) +
+      (U.memorial === 'resumido' && rota.imprime ? ' - resumido' : '');   // v0.8.0: nome do PDF salvo
     desenharSobre();
     ajustarCelular(R);
     if (focoId) {
@@ -5114,7 +5139,22 @@ window.HVAC = window.HVAC || {};
     if (!rotaQueImprime()) return;
     var L = A.faltaPreencher ? A.faltaPreencher(E, A.calcular ? A.calcular(E) : null) || [] : [];
     if (L.length) { U.sobre = { tipo: 'janela', html: htmlFaltaPreencher(L), falta: L }; return; }
-    imprimir();
+    escolherVersao(false);
+  }
+  /* v0.8.0: com A.memorialResumido, a janela "Gerar PDF" pergunta a versão ("Completo" ou "Resumido") antes de imprimir; vem depois
+     da janela "Falta preencher", quando ela abre. O resumido é a mesma rota com U.memorial = 'resumido': o app desenha a folha
+     resumida, a casca imprime e, no afterprint, volta ao completo. Sem o item, imprime direto, como na 0.7.0. */
+  function escolherVersao(depois) {
+    if (!A.memorialResumido) { U.sobre = null; imprimir(depois); return; }
+    U.sobre = { tipo: 'janela', html: '<h2>Gerar PDF</h2><div class="acoes" style="margin-top:14px">' +
+      '<button type="button" class="botao prim" data-acao="pdf-completo">Completo</button>' +
+      '<button type="button" class="botao" data-acao="pdf-resumido">Resumido</button></div>' };
+  }
+  function imprimirVersao(resumido) {
+    U.sobre = null;
+    U.memorial = resumido ? 'resumido' : '';
+    voltarAoCompleto = resumido;
+    imprimir(true);
   }
   /* Texto do arquivo de projeto como é salvo: o projeto, o envelope (formato, versaoFormato, versaoApp e, logo depois, versaoPlataforma)
      e os blocos que A.arquivo.aoSalvar(E, R) devolver (ex.: { resultados: {...} }). Os blocos entram só nesta cópia: E não os recebe.
@@ -5229,7 +5269,9 @@ window.HVAC = window.HVAC || {};
     paleta: function () { U.sobre = { tipo: 'paleta', busca: '', sel: 0 }; return 'paleta-busca'; },
     comando: function (el) { var c = comandosFiltrados()[+el.getAttribute('data-i')]; U.sobre = null; if (c) c.fn(); },
     pdf: gerarPdf,
-    'pdf-assim': function () { U.sobre = null; imprimir(true); },                     // v0.7.0: janela "Falta preencher"
+    'pdf-assim': function () { escolherVersao(true); },                               // v0.7.0: janela "Falta preencher"
+    'pdf-completo': function () { imprimirVersao(false); },                           // v0.8.0: janela "Gerar PDF"
+    'pdf-resumido': function () { imprimirVersao(true); },
     'pdf-ir': function (el) {
       var x = U.sobre && U.sobre.falta ? U.sobre.falta[+el.getAttribute('data-i')] : null;
       U.sobre = null;
@@ -5312,7 +5354,10 @@ window.HVAC = window.HVAC || {};
   function celular() { return !!estreita.matches; }
   var imprimindo = false;                     // a troca de mídia durante a impressão não redesenha a tela
   window.addEventListener('beforeprint', function () { imprimindo = true; });
-  window.addEventListener('afterprint', function () { imprimindo = false; });
+  window.addEventListener('afterprint', function () {
+    imprimindo = false;
+    if (voltarAoCompleto) { voltarAoCompleto = false; U.memorial = ''; desenhar(); }   // v0.8.0: o resumido só vale para aquela impressão
+  });
 
   // Menu (C1, C2): o que estava no topo e na paleta, em botões de 44 px; o seletor de arquivo fica sobre o botão (C12)
   function htmlMenu() {
@@ -5395,9 +5440,10 @@ window.HVAC = window.HVAC || {};
 
   // Memorial (v0.6.1, Francisco, 2026-11-17): no papel, cada tópico numerado ("3. Resumo") começa numa folha nova; o primeiro
   // de cada folha fica logo abaixo do cabeçalho. A classe só tem efeito na impressão (impressao.css); a tela não muda.
+  // v0.8.0: a folha com data-resumo (memorial resumido) corre contínua, sem folha nova por tópico.
   function marcarTopicos(raiz) {
     Array.prototype.forEach.call(raiz.querySelectorAll('.folha'), function (f) {
-      if (f.parentNode.closest('.folha')) return;
+      if (f.parentNode.closest('.folha') || f.hasAttribute('data-resumo')) return;
       var n = 0;
       Array.prototype.forEach.call(f.querySelectorAll('h2'), function (h) {
         if (/^\s*\d+\.\s/.test(h.textContent) && n++) h.classList.add('topico-folha');
@@ -6288,7 +6334,7 @@ window.HVAC = window.HVAC || {};
   }
 
   // Linhas "Por ambiente" (Resultados e memorial): cada ambiente na sua combinação adotada e o conjunto na do sistema
-  function tabelaPorAmbiente(E, cj, rs, folha) {   // folha = memorial: sem as notas sob as tabelas (v0.9.4)
+  function tabelaPorAmbiente(E, cj, rs, folha, soCarga) {   // folha = memorial: sem as notas sob as tabelas (v0.9.4); soCarga: só a 1ª tabela (memorial resumido, v0.11.0)
     var linhas = E.ambientes.map(function (amb, i) {
       var ra = M.resumoAmbiente(cj.ambientes[i], E.projeto);
       return '<tr class="clicavel" data-acao="ir" data-rota="#/ambiente/' + i + '"><td>' + esc(amb.nome) + '</td><td class="num">' + f.num(amb.area, 0) + '</td><td class="num">' + mes(ra.mes) + ' · ' + DIA_CURTO[ra.dia] + ' · ' + ra.hora + ' h</td>' +
@@ -6299,9 +6345,9 @@ window.HVAC = window.HVAC || {};
       linhas + '<tr><td>Acréscimo de ar exterior do sistema (Ev = ' + H.motor.passos.evTxt(rs.sistema.ev) + ')</td><td></td><td></td><td></td><td></td><td class="num">' + f.num(pt.acrescimo, 0) + '</td><td></td><td></td></tr>' +
       '<tr class="total"><td>Conjunto (capacidade do sistema)</td><td class="num">' + f.num(cj.area, 0) + '</td><td class="num">' + mes(rs.mes) + ' · ' + DIA_CURTO[rs.dia] + ' · ' + rs.hora + ' h</td><td class="num">' + f.num(pt.cargaAmbHora, 0) + '</td><td class="num">' + f.num(pt.retornoHora, 0) +
       '</td><td class="num">' + f.num(rs.capSistemaW, 0) + '</td><td class="num">' + f.num(rs.capTR, 2) + '</td><td class="num">' + f.num(rs.wm2, 0) + '</td></tr></tbody></table></div>' +
-      (folha ? tabelaSensivelAmbiente(E, cj, true) : '<p class="fraco" style="margin-top:8px">Cada ambiente na sua própria combinação de mês, dia e hora; o conjunto, na do sistema. Soma dos máximos do ano de cada ambiente: ' + f.num(cj.somaPicos, 0) + ' W · soma das cargas dos ambientes na combinação adotada: ' + f.num(cj.somaCombinacao, 0) + ' W · pico simultâneo: ' + f.num(cj.totalPico, 0) + ' W · fator de diversidade (pico simultâneo ÷ soma na combinação adotada): ' + f.num(cj.diversidade, 2) +
+      (soCarga ? '' : (folha ? tabelaSensivelAmbiente(E, cj, true) : '<p class="fraco" style="margin-top:8px">Cada ambiente na sua própria combinação de mês, dia e hora; o conjunto, na do sistema. Soma dos máximos do ano de cada ambiente: ' + f.num(cj.somaPicos, 0) + ' W · soma das cargas dos ambientes na combinação adotada: ' + f.num(cj.somaCombinacao, 0) + ' W · pico simultâneo: ' + f.num(cj.totalPico, 0) + ' W · fator de diversidade (pico simultâneo ÷ soma na combinação adotada): ' + f.num(cj.diversidade, 2) +
       '. TR e W/m² incluem o fator de segurança de ' + f.num(E.projeto.fs, 0) + ' %.</p>' + tabelaSensivelAmbiente(E, cj)) +
-      tabelaVazoes(E, cj, folha);
+      tabelaVazoes(E, cj, folha));
   }
 
   /* Vazões de ar de cada ambiente (v0.9.6; Francisco, 2026-11-23): insuflamento, ar exterior e retorno em m³/h de ar padrão, na combinação adotada
@@ -6438,35 +6484,87 @@ window.HVAC = window.HVAC || {};
     return '<table><thead><tr><th>Série</th><th>Descrição e fonte</th><th>Fatores (%), n = 0 a 23</th><th class="num">Soma</th></tr></thead><tbody>' + linhas + '</tbody></table>';
   }
 
-  function memorial(E) {
-    var cj = M.conjunto(E), p = E.projeto, hoje = new Date(), clima = T.climaDe(p), rs = M.resumo(cj, p), sis = rs.sistema, am = rs.ambiente, pt = rs.ponte;
-    var data = ('0' + hoje.getDate()).slice(-2) + '/' + ('0' + (hoje.getMonth() + 1)).slice(-2) + '/' + hoje.getFullYear();
-    function estado(alterado) { return alterado ? 'informado pelo projetista' : 'padrão da norma'; }
-    function h3(t) { return '<h3 style="margin:14px 0 6px;font-size:13.5px">' + t + '</h3>'; }
-    var recirc = sis.tipo === M.arExterior.SIS_RECIRC;
-    var razaoAlt = 101.325 / clima.pressao;
-    var temSombExt = cj.ambientes.some(function (r) { return r.env.itens.some(function (it) { return it.ext && it.ext.ativa; }); });    var diferem =E.ambientes.map(function (amb, i) {
+  function h3(t) { return '<h3 style="margin:14px 0 6px;font-size:13.5px">' + t + '</h3>'; }
+  function dataDeHoje() { var hoje = new Date(); return ('0' + hoje.getDate()).slice(-2) + '/' + ('0' + (hoje.getMonth() + 1)).slice(-2) + '/' + hoje.getFullYear(); }
+  // Cabeçalho da folha (completo e resumido, v0.11.0)
+  function cabecalhoFolha(p, titulo) {
+    return '<div class="cab-f"><div><h1>' + titulo + '</h1><div>' + esc(p.nome || 'Projeto sem nome') + (p.cliente ? ' · ' + esc(p.cliente) : '') + '</div></div>' +
+      '<div>Revisão ' + esc(p.revisao) + '<br>' + dataDeHoje() + '<br>' + (p.responsavel ? esc(p.responsavel) + (p.registro ? '<br>' + esc(p.registro) : '') : '<em>responsável não informado</em>') + '</div></div>';
+  }
+  /* Linhas Local … Fator de segurança: seção 1 do completo (comFonte) e Condições de projeto do resumido, sem as fontes (v0.11.0) */
+  function linhasCondicoes(E, cj, rs, comFonte) {
+    var p = E.projeto, clima = T.climaDe(p), sis = rs.sistema, recirc = sis.tipo === M.arExterior.SIS_RECIRC, razaoAlt = 101.325 / clima.pressao;
+    var kc = H.dados.motor.clima, fq = clima.freq;
+    var diferem = E.ambientes.map(function (amb, i) {
       var a = cj.ambientes[i].adotados;
       return Math.abs(a.tInt - clima.tint) > 1e-9 || Math.abs(a.urInt - clima.ur) > 1e-9 ? esc(amb.nome) + ': ' + f.num(a.tInt, 1) + ' °C e ' + f.num(a.urInt, 0) + ' %' : '';
     }).filter(function (x) { return x; });
-    var s = '<div class="cab-f"><div><h1>Memorial de cálculo de carga térmica de resfriamento</h1><div>' + esc(p.nome || 'Projeto sem nome') + (p.cliente ? ' · ' + esc(p.cliente) : '') + '</div></div>' +
-      '<div>Revisão ' + esc(p.revisao) + '<br>' + data + '<br>' + (p.responsavel ? esc(p.responsavel) + (p.registro ? '<br>' + esc(p.registro) : '') : '<em>responsável não informado</em>') + '</div></div>';
+    return '<tr><td>Local</td><td>' + esc(clima.cidade) + ', ' + esc(clima.estacao) + ', altitude ' + f.num(clima.altitude, 0) + ' m, pressão ' + f.num(clima.pressao, 2) + ' kPa</td></tr>' +
+      '<tr><td>Condições externas</td><td>Frequência ' + f.num(Number(fq), 1) + ' %. Dia de tbs máxima: ' + f.num(clima.tbs, 1) + ' / ' + f.num(clima.tbu, 1) + ' °C. Dia de tbu máxima: ' + f.num(kc['tbs_coinc_' + fq], 1) + ' / ' + f.num(kc['tbu_max_' + fq], 1) + ' °C' +
+        (p.controleUmidade ? '. Dia de umidade máxima: tpo ' + f.num(kc['tpo_umid_' + fq], 1) + ' °C, ' + f.num(kc['w_umid_' + fq], 1) + ' g/kg, tbs ' + f.num(kc['tbs_umid_' + fq], 1) + ' °C' : '') + (comFonte ? ' (' + esc(clima.fonteClima) + ')' : '') + '</td></tr>' +
+      '<tr><td>Condições internas</td><td>' + f.num(clima.tint, 1) + ' °C e ' + f.num(clima.ur, 0) + ' %' + (diferem.length ? '; ' + diferem.join('; ') : '') + '</td></tr>' +
+      '<tr><td>Combinação adotada</td><td>' + mes(rs.mes) + ', dia de ' + rs.nomeDia + ', ' + rs.hora + ' h</td></tr>' +
+      '<tr><td>Ar exterior</td><td>' + esc(sis.tipo) + (recirc ? '; D ' + (p.dSistema === null || p.dSistema === undefined || p.dSistema === '' ? 'vazio' : sis.dValido ? f.num(sis.d, 2) : 'inválido, tratado como vazio') : '') + '; Ev = ' + H.motor.passos.evTxt(sis.ev) +
+        '; Qs = ' + f.num(sis.qs, 1) + ' L/s de ar padrão (' + f.num(sis.qs * razaoAlt, 1) + ' L/s no local)' + (comFonte ? ' (' + H.motor.passos.FONTE_QS + ')' : '') + '</td></tr>' +
+      '<tr><td>Fator de segurança</td><td>' + f.num(p.fs, 1) + ' %</td></tr>';
+  }
+  /* Quadro "Conjunto" (seção 3 do completo; seção 6 do resumido, v0.11.0) */
+  function quadroConjunto(E, rs, resumido) {   // resumido: sem as fontes e a fórmula da 3ª coluna
+    var p = E.projeto, sis = rs.sistema, am = rs.ambiente, pt = rs.ponte;
+    return '<table><tbody>' +
+      '<tr><td>Carga do ambiente, máximo do ano</td><td class="num">' + f.num(am.totalW, 0) + ' W</td><td>' + mes(am.mes) + ', dia de ' + am.nomeDia + ', ' + am.hora + ' h; sensível ' + f.num(am.sensW, 0) + ' W, latente líquido ' + f.num(am.latW, 0) + ' W, FCS ' + f.num(am.fcs, 2) + '</td></tr>' +
+      '<tr><td>Carga do ambiente às ' + rs.hora + ' h (combinação do sistema)</td><td class="num">' + f.num(pt.cargaAmbHora, 0) + ' W</td><td>soma dos ambientes</td></tr>' +
+      '<tr><td>+ Calor da iluminação ao retorno</td><td class="num">' + f.num(pt.retornoHora, 0) + ' W</td><td>' + (resumido ? '' : 'forro plenum: ASHRAE Fundamentals 2021, p. 18.6, l. 1; NBR 16401-1, p. 14, l. 18') + '</td></tr>' +
+      '<tr><td>+ Acréscimo de ar exterior do sistema (Ev = ' + H.motor.passos.evTxt(sis.ev) + ')</td><td class="num">' + f.num(pt.acrescimo, 0) + ' W</td><td>' + (resumido ? '' : '(1/Ev − 1) · ar exterior sensível + máx(0; latente)') + '</td></tr>' +
+      '<tr class="total"><td>= Capacidade do sistema</td><td class="num">' + f.num(rs.capSistemaW, 0) + ' W</td><td>' + mes(rs.mes) + ', dia de ' + rs.nomeDia + ', ' + rs.hora + ' h</td></tr>' +
+      '<tr><td>× (1 + FS), FS = ' + f.num(p.fs, 1) + ' %</td><td class="num">× ' + f.num(1 + p.fs / 100, 2) + '</td><td></td></tr>' +
+      '<tr class="total"><td>= Capacidade de projeto</td><td class="num">' + f.num(rs.capProjetoW, 0) + ' W</td><td>' + f.num(rs.capTR, 3) + ' TR (1 TR = 3.516,85 W) · ' + f.num(rs.capProjetoW * BTU_POR_W, 0) + ' BTU/h · ' + f.num(rs.wm2, 1) + ' W/m²</td></tr>' +
+      (rs.segunda ? '<tr><td>Segunda maior hora da capacidade</td><td class="num">' + f.num(rs.segunda.capW, 0) + ' W</td><td>' + rs.segunda.hora + ' h, ' + f.num(rs.segunda.difW, 0) + ' W abaixo do pico</td></tr>' : '') +
+      '</tbody></table>';
+  }
+  /* Composição da carga de cada ambiente (memorial resumido, v0.11.0; pedido do Francisco, 2026-11-25): parcelas de M.composicaoAmbiente,
+     na combinação e na hora da coluna "Carga do ambiente" da tabela Carga por ambiente; a soma das parcelas é a carga do ambiente */
+  function tabelaComposicao(E, cj) {
+    function w(v) { return '<td class="num">' + f.num(v, 0) + '</td>'; }
+    return '<div class="tabela-rolo"><table><thead><tr><th>Ambiente e combinação</th><th class="num">Envoltória opaca (W)</th><th class="num">Vidros (W)</th><th class="num">Pessoas (W)</th>' +
+      '<th class="num">Iluminação (W)</th><th class="num">Equipamentos (W)</th><th class="num">Ar exterior (W)</th><th class="num">Infiltração (W)</th><th class="num">Sensível (W)</th><th class="num">Latente líquido (W)</th><th class="num">Carga do ambiente (W)</th></tr></thead><tbody>' +
+      E.ambientes.map(function (amb, i) {
+        var c = M.composicaoAmbiente(cj.ambientes[i]);
+        return '<tr><td>' + esc(amb.nome) + '<br>' + mes(c.mes) + ' · ' + DIA_CURTO[c.dia] + ' · ' + c.hora + ' h</td>' + w(c.opaca) + w(c.vidros) + w(c.pessoas) + w(c.iluminacao) + w(c.equipamentos) +
+          w(c.arExterior) + w(c.infiltracao) + w(c.sensivel) + w(c.latente) + w(c.total) + '</tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  /* Memorial resumido (v0.11.0, plataforma 0.8.0; pedido do Francisco, 2026-11-25, feedback dos chefes): só os resultados, sem bases,
+     premissas, varredura, dias de projeto, blocos por ambiente, contas, séries CTS e perfil horário. Folha com data-resumo (corrida) */
+  function folhaResumida(E) {
+    var cj = M.conjunto(E), p = E.projeto, rs = M.resumo(cj, p);
+    var s = cabecalhoFolha(p, 'Memorial de cálculo resumido de carga térmica de resfriamento') +
+      '<p>Método, premissas e contas: memorial completo da mesma revisão.</p>';
+    s += '<h2>1. Condições de projeto</h2><table><tbody>' + linhasCondicoes(E, cj, rs, false) + '</tbody></table>';
+    s += '<h2>2. Carga por ambiente</h2>' + tabelaPorAmbiente(E, cj, rs, true, true).replace(/ class="clicavel" data-acao="ir" data-rota="[^"]*"/g, '');
+    s += '<h2>3. Calor sensível do ambiente</h2>' + tabelaSensivelAmbiente(E, cj, true);
+    var vz = tabelaVazoes(E, cj, true);
+    if (vz) s += '<h2>4. Vazões de ar por ambiente</h2>' + vz;
+    var n = vz ? 5 : 4;
+    s += '<h2>' + n + '. Composição da carga do ambiente</h2>' + tabelaComposicao(E, cj);
+    s += '<h2>' + (n + 1) + '. Conjunto e serpentina</h2>' + quadroConjunto(E, rs, true) + h3('Serpentina de resfriamento') + serpentina(E, cj, rs, true);
+    return '<article class="folha" data-resumo="1">' + s + '</article>';
+  }
+
+  function memorial(E, U) {
+    var cj = M.conjunto(E), p = E.projeto, clima = T.climaDe(p), rs = M.resumo(cj, p);
+    function estado(alterado) { return alterado ? 'informado pelo projetista' : 'padrão da norma'; }
+    var temSombExt = cj.ambientes.some(function (r) { return r.env.itens.some(function (it) { return it.ext && it.ext.ativa; }); });
+    var s = cabecalhoFolha(p, 'Memorial de cálculo de carga térmica de resfriamento');
 
     /* v0.9.4 (Francisco, 2026-11-17): o memorial traz só dados, contas, resultados e a fonte de cada valor; sem nota, aviso,
        explicação de método nem referência à planilha de conferência. Lista aprovada na sessão 2026-11-17 (PROPOSTA_memorial_limpo.md) */
-    var kc = H.dados.motor.clima, fq = clima.freq;
     var dTSerp = p.dTIns === null || p.dTIns === undefined ? M.serpentina.DT_PADRAO : p.dTIns, qVentSerp = p.qVent === null || p.qVent === undefined ? 0 : p.qVent;
     s += '<h2>1. Bases de cálculo</h2><table><tbody>' +
       '<tr><td>Normas</td><td>NBR 16401-1 e 16401-3; ASHRAE Fundamentals 2021 e 2025; ASHRAE Systems and Equipment 2016; ASHRAE Load Calculation Applications Manual</td></tr>' +
       '<tr><td>Método</td><td>Séries CTS e RTS (ASHRAE Fundamentals 2021, cap. 18); 12 meses × dias de projeto; adotada a combinação de maior capacidade do sistema (NBR 16401-1, p. 11, l. 19)</td></tr>' +
-      '<tr><td>Local</td><td>' + esc(clima.cidade) + ', ' + esc(clima.estacao) + ', altitude ' + f.num(clima.altitude, 0) + ' m, pressão ' + f.num(clima.pressao, 2) + ' kPa</td></tr>' +
-      '<tr><td>Condições externas</td><td>Frequência ' + f.num(Number(fq), 1) + ' %. Dia de tbs máxima: ' + f.num(clima.tbs, 1) + ' / ' + f.num(clima.tbu, 1) + ' °C. Dia de tbu máxima: ' + f.num(kc['tbs_coinc_' + fq], 1) + ' / ' + f.num(kc['tbu_max_' + fq], 1) + ' °C' +
-        (p.controleUmidade ? '. Dia de umidade máxima: tpo ' + f.num(kc['tpo_umid_' + fq], 1) + ' °C, ' + f.num(kc['w_umid_' + fq], 1) + ' g/kg, tbs ' + f.num(kc['tbs_umid_' + fq], 1) + ' °C' : '') + ' (' + esc(clima.fonteClima) + ')</td></tr>' +
-      '<tr><td>Condições internas</td><td>' + f.num(clima.tint, 1) + ' °C e ' + f.num(clima.ur, 0) + ' %' + (diferem.length ? '; ' + diferem.join('; ') : '') + '</td></tr>' +
-      '<tr><td>Combinação adotada</td><td>' + mes(rs.mes) + ', dia de ' + rs.nomeDia + ', ' + rs.hora + ' h</td></tr>' +
-      '<tr><td>Ar exterior</td><td>' + esc(sis.tipo) + (recirc ? '; D ' + (p.dSistema === null || p.dSistema === undefined || p.dSistema === '' ? 'vazio' : sis.dValido ? f.num(sis.d, 2) : 'inválido, tratado como vazio') : '') + '; Ev = ' + H.motor.passos.evTxt(sis.ev) +
-        '; Qs = ' + f.num(sis.qs, 1) + ' L/s de ar padrão (' + f.num(sis.qs * razaoAlt, 1) + ' L/s no local) (' + H.motor.passos.FONTE_QS + ')</td></tr>' +
-      '<tr><td>Fator de segurança</td><td>' + f.num(p.fs, 1) + ' %</td></tr></tbody></table>' +
+      linhasCondicoes(E, cj, rs, true) + '</tbody></table>' +
       h3('Condições externas por mês (' + esc(clima.fonteClima) + ')') + quadroMeses(p, rs.mes);
 
     s += '<h2>2. Premissas</h2><ol style="margin:0 0 0 18px;padding:0">' +
@@ -6483,16 +6581,7 @@ window.HVAC = window.HVAC || {};
       '<li>Vazões de cada ambiente: insuflamento da serpentina repartido pelo calor sensível do ambiente na hora do sistema; ar exterior na fração da mistura; retorno = insuflamento − ar exterior; ar padrão, 1,2 kg/m³.</li></ol>';
 
     s += '<h2>3. Resumo</h2>' + tabelaPorAmbiente(E, cj, rs, true).replace(/ class="clicavel" data-acao="ir" data-rota="[^"]*"/g, '') +
-      h3('Conjunto') + '<table><tbody>' +
-      '<tr><td>Carga do ambiente, máximo do ano</td><td class="num">' + f.num(am.totalW, 0) + ' W</td><td>' + mes(am.mes) + ', dia de ' + am.nomeDia + ', ' + am.hora + ' h; sensível ' + f.num(am.sensW, 0) + ' W, latente líquido ' + f.num(am.latW, 0) + ' W, FCS ' + f.num(am.fcs, 2) + '</td></tr>' +
-      '<tr><td>Carga do ambiente às ' + rs.hora + ' h (combinação do sistema)</td><td class="num">' + f.num(pt.cargaAmbHora, 0) + ' W</td><td>soma dos ambientes</td></tr>' +
-      '<tr><td>+ Calor da iluminação ao retorno</td><td class="num">' + f.num(pt.retornoHora, 0) + ' W</td><td>forro plenum: ASHRAE Fundamentals 2021, p. 18.6, l. 1; NBR 16401-1, p. 14, l. 18</td></tr>' +
-      '<tr><td>+ Acréscimo de ar exterior do sistema (Ev = ' + H.motor.passos.evTxt(sis.ev) + ')</td><td class="num">' + f.num(pt.acrescimo, 0) + ' W</td><td>(1/Ev − 1) · ar exterior sensível + máx(0; latente)</td></tr>' +
-      '<tr class="total"><td>= Capacidade do sistema</td><td class="num">' + f.num(rs.capSistemaW, 0) + ' W</td><td>' + mes(rs.mes) + ', dia de ' + rs.nomeDia + ', ' + rs.hora + ' h</td></tr>' +
-      '<tr><td>× (1 + FS), FS = ' + f.num(p.fs, 1) + ' %</td><td class="num">× ' + f.num(1 + p.fs / 100, 2) + '</td><td></td></tr>' +
-      '<tr class="total"><td>= Capacidade de projeto</td><td class="num">' + f.num(rs.capProjetoW, 0) + ' W</td><td>' + f.num(rs.capTR, 3) + ' TR (1 TR = 3.516,85 W) · ' + f.num(rs.capProjetoW * BTU_POR_W, 0) + ' BTU/h · ' + f.num(rs.wm2, 1) + ' W/m²</td></tr>' +
-      (rs.segunda ? '<tr><td>Segunda maior hora da capacidade</td><td class="num">' + f.num(rs.segunda.capW, 0) + ' W</td><td>' + rs.segunda.hora + ' h, ' + f.num(rs.segunda.difW, 0) + ' W abaixo do pico</td></tr>' : '') +
-      '</tbody></table>' +
+      h3('Conjunto') + quadroConjunto(E, rs) +
       '<h2>4. Varredura dos 12 meses (conjunto)</h2>' + tabelaVarredura(rs.meses, 'Capacidade do sistema') +
       h3('Dias de projeto do conjunto, em ' + mes(rs.mes) + ', mês adotado') + T.tabelaDias(cj, true);
 
@@ -6541,7 +6630,7 @@ window.HVAC = window.HVAC || {};
     return '<div class="nao-imprime">' + T.cabeca('Passo 4 de 4', 'Memorial', 'É este o documento que sai em PDF. Ele é montado a partir do que está nas telas, sem redigitação.') +
       '<div class="acoes" style="margin-bottom:16px"><button class="botao prim" data-acao="pdf">Gerar PDF</button><button class="botao" data-acao="salvar">Salvar arquivo do projeto</button>' +
       '<span class="fraco">No diálogo de impressão, escolha “Salvar como PDF”.</span></div></div>' +
-      '<article class="folha">' + s + '</article>';
+      (U && U.memorial === 'resumido' ? folhaResumida(E) : '<article class="folha">' + s + '</article>');
   }
 
   H.ui.telas.resultados = resultados;
@@ -6635,7 +6724,7 @@ window.HVAC = window.HVAC || {};
       ambientes: { tela: function (E) { return T.ambientes(E); }, faixa: true },
       ambiente: { tela: function (E, U) { return T.ambiente(E, U.amb); }, indice: 'amb', passo: 'ambientes', faixa: true },
       resultados: { tela: function (E) { return T.resultados(E); }, larga: true },
-      memorial: { tela: function (E) { return T.memorial(E); }, larga: true, imprime: true }
+      memorial: { tela: function (E, U) { return T.memorial(E, U); }, larga: true, imprime: true }
     },
     parametros: {
       visao: function (v, U) { U.tabela = v === 'tabela'; },
@@ -6650,6 +6739,7 @@ window.HVAC = window.HVAC || {};
     ],
     // plataforma 0.7.0: o que falta preencher abre a janela da casca ao gerar o PDF (resultados.js)
     faltaPreencher: function (E) { return H.ui.telas.faltaPreencher(E); },
+    memorialResumido: true,   // v0.11.0 (plataforma 0.8.0): janela "Gerar PDF" com "Completo" e "Resumido"; U.memorial chega a T.memorial
 
     calcular: function (E) { var cj = H.motor.conjunto(E); return { cj: cj, rs: H.motor.resumo(cj, E.projeto) }; },
     medida: function (E) { return H.motor.conjunto(E).adotado.cap; },     // a faixa mostra a variação da capacidade
